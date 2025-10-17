@@ -425,7 +425,6 @@
           </div>
           <div class="flex gap-2">
             <button id="exportPdf" class="neon-btn">Export as PDF</button>
-            <button id="exportDoc" class="neon-btn">Export as DOCX</button>
           </div>
         </div>
 
@@ -527,6 +526,10 @@
 
   <!-- third-party charts -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- html2canvas + jsPDF (used to capture page and generate PDF) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script>
     // Sample timetable JSON (Mon-Fri, simple periods)
     const timetableJSON = {
@@ -666,7 +669,89 @@
     setTimeout(() => showToast('Your 10 AM Data Structures class moved to Lab L2.'), 1400);
 
     // Export buttons (simulate)
-    document.getElementById('exportPdf').addEventListener('click', () => { showToast('Exporting PDF (simulated)...'); });
+    document.getElementById('exportPdf').addEventListener('click', async (evt) => {
+      const btn = evt.currentTarget;
+      try {
+        btn.disabled = true;
+        showToast('Preparing PDF...');
+
+        // ensure libs are loaded
+        if (typeof html2canvas === 'undefined' || !window.jspdf) {
+          showToast('PDF libraries not loaded', 3000);
+          btn.disabled = false;
+          return;
+        }
+
+        // target element to capture
+        const target = document.querySelector('.container');
+        // temporarily show any hidden panels to ensure full capture (if needed)
+        const origScroll = window.scrollY;
+
+        // use html2canvas to render the container at higher scale for clarity
+        const canvas = await html2canvas(target, {
+          scale: 2,
+          useCORS: true,
+          allowTaint: true,
+          logging: false,
+          windowWidth: document.documentElement.clientWidth,
+          windowHeight: document.documentElement.clientHeight
+        });
+
+        const imgData = canvas.toDataURL('image/png');
+
+        // create jsPDF and add image (fit to page, handle multi-page if needed)
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF({
+          orientation: 'landscape',
+          unit: 'pt',
+          format: 'a4'
+        });
+
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
+
+        // image natural size
+        const imgW = canvas.width;
+        const imgH = canvas.height;
+        const ratio = Math.min(pdfWidth / imgW, pdfHeight / imgH);
+        const renderW = imgW * ratio;
+        const renderH = imgH * ratio;
+
+        // If content fits one page, add it. Otherwise slice into pages.
+        if (renderH <= pdfHeight) {
+          pdf.addImage(imgData, 'PNG', (pdfWidth - renderW) / 2, 20, renderW, renderH);
+        } else {
+          // Multi-page: split canvas into vertical slices
+          let remainingHeight = imgH;
+          let offsetY = 0;
+          const pageCanvas = document.createElement('canvas');
+          const pageCtx = pageCanvas.getContext('2d');
+          pageCanvas.width = imgW;
+          pageCanvas.height = Math.floor(pdfHeight / ratio);
+
+          while (remainingHeight > 0) {
+            pageCtx.clearRect(0, 0, pageCanvas.width, pageCanvas.height);
+            pageCtx.drawImage(canvas, 0, offsetY, pageCanvas.width, pageCanvas.height, 0, 0, pageCanvas.width, pageCanvas.height);
+            const pageData = pageCanvas.toDataURL('image/png');
+            if (pdf.getNumberOfPages() > 0) pdf.addPage();
+            pdf.addImage(pageData, 'PNG', (pdfWidth - renderW) / 2, 20, renderW, pageCanvas.height * ratio);
+            offsetY += pageCanvas.height;
+            remainingHeight -= pageCanvas.height;
+          }
+        }
+
+        // trigger download
+        pdf.save(`Timelytics_Schedule_${new Date().toISOString().slice(0,10)}.pdf`);
+        showToast('PDF downloaded');
+        window.scrollTo(0, origScroll);
+      } catch (err) {
+        console.error(err);
+        showToast('Failed to generate PDF');
+      } finally {
+        btn.disabled = false;
+      }
+    });
+    
     document.getElementById('exportDoc').addEventListener('click', () => { showToast('Exporting DOCX (simulated)...'); });
 
     // Particles (optimized: reduce on small devices)
