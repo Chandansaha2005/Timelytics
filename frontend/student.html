@@ -1,223 +1,526 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Timelytics — Student Dashboard</title>
-    <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;600;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Timelytics — Student Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;600;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
   <style>
-      :root{
-        --darkbg: #0B0F19;
-        --magenta: #FF00FF;
-        --blue: #00BFFF;
-        --violet: #8A2BE2;
+    :root {
+      --darkbg: #0B0F19;
+      --magenta: #FF00FF;
+      --blue: #00BFFF;
+      --violet: #8A2BE2;
+    }
+
+    html,
+    body {
+      height: 100%
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Unbounded', system-ui, -apple-system, 'Segoe UI', Roboto, Arial;
+      background: var(--darkbg);
+      color: #E6EEF8;
+    }
+
+    /* animated gradient background */
+    .bg-animated {
+      background: linear-gradient(120deg, var(--magenta), var(--violet), var(--blue));
+      background-size: 300% 300%;
+      animation: bgShift 8s linear infinite;
+      opacity: .06;
+      position: fixed;
+      inset: 0;
+      z-index: 0
+    }
+
+    @keyframes bgShift {
+      0% {
+        background-position: 0% 50%
       }
-      html,body{height:100%}
-      body{margin:0;font-family:'Unbounded',system-ui,-apple-system,'Segoe UI',Roboto,Arial;background:var(--darkbg);color:#E6EEF8;}
 
-  /* animated gradient background */
-      .bg-animated{background:linear-gradient(120deg,var(--magenta),var(--violet),var(--blue));background-size:300% 300%;animation:bgShift 8s linear infinite;opacity:.06;position:fixed;inset:0;z-index:0}
-      @keyframes bgShift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+      50% {
+        background-position: 100% 50%
+      }
 
-  /* glass */
-  .glass{background:rgba(255,255,255,0.04);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-radius:16px;border:1px solid rgba(255,255,255,0.04);transition:transform .24s cubic-bezier(.2,.9,.2,1),box-shadow .24s,border-color .24s}
-  .glass:hover{transform:translateY(-6px) scale(1.01);box-shadow:0 22px 60px rgba(72,61,139,0.12)}
-  .glow-border{box-shadow:0 8px 40px rgba(138,43,226,0.06)}
+      100% {
+        background-position: 0% 50%
+      }
+    }
 
-  /* stagger reveal utility (JS will set --delay) */
-  .stagger{opacity:0;transform:translateY(12px);animation:staggerIn .6s cubic-bezier(.2,.9,.2,1) forwards;animation-delay:var(--delay,0ms)}
-  @keyframes staggerIn{to{opacity:1;transform:none}}
+    /* glass */
+    .glass {
+      background: rgba(255, 255, 255, 0.04);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      transition: transform .24s cubic-bezier(.2, .9, .2, 1), box-shadow .24s, border-color .24s
+    }
 
-  /* active slot glow pulse */
-  .slot.active::after{content:'';position:absolute;inset:-6px;border-radius:12px;background:radial-gradient(circle at 30% 20%, rgba(0,191,255,0.12), transparent 30%);pointer-events:none;animation:glowPulse 2s infinite}
-  @keyframes glowPulse{0%{opacity:0.8;transform:scale(0.98)}50%{opacity:0.18;transform:scale(1.06)}100%{opacity:0.8;transform:scale(0.98)}}
+    .glass:hover {
+      transform: translateY(-6px) scale(1.01);
+      box-shadow: 0 22px 60px rgba(72, 61, 139, 0.12)
+    }
 
-  /* FAB */
-  .fab{position:fixed;right:22px;bottom:22px;width:56px;height:56px;border-radius:999px;background:linear-gradient(90deg,var(--magenta),var(--blue));display:flex;align-items:center;justify-content:center;color:white;box-shadow:0 18px 50px rgba(106,90,205,0.18);z-index:70}
+    .glow-border {
+      box-shadow: 0 8px 40px rgba(138, 43, 226, 0.06)
+    }
 
-  /* search */
-  .search-input{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.03);padding:8px 12px;border-radius:10px;color:#dff3ff;min-width:220px}
+    /* stagger reveal utility (JS will set --delay) */
+    .stagger {
+      opacity: 0;
+      transform: translateY(12px);
+      animation: staggerIn .6s cubic-bezier(.2, .9, .2, 1) forwards;
+      animation-delay: var(--delay, 0ms)
+    }
 
-  /* skeleton */
-  .skeleton{background:linear-gradient(90deg, rgba(255,255,255,0.03), rgba(255,255,255,0.06), rgba(255,255,255,0.03));background-size:200% 100%;animation:skeletonAnim 1.4s linear infinite;border-radius:8px}
-  @keyframes skeletonAnim{0%{background-position:0% 0%}100%{background-position:200% 0%}}
+    @keyframes staggerIn {
+      to {
+        opacity: 1;
+        transform: none
+      }
+    }
 
-      /* header */
-      header.site-header{position:fixed;top:12px;left:12px;right:12px;height:68px;display:flex;align-items:center;justify-content:space-between;padding:0 18px;z-index:30}
-      .brand{font-weight:800;font-size:20px;letter-spacing:0.4px}
-      .gradient-text{background:linear-gradient(90deg,var(--magenta),var(--blue),var(--violet));-webkit-background-clip:text;background-clip:text;color:transparent;background-size:200% 200%;animation:gradientShift 4s ease infinite}
-      @keyframes gradientShift{0%{background-position:0% 50%}100%{background-position:100% 50%}}
-      nav a{position:relative;padding:8px 10px;border-radius:8px;color:#cfe9ff;transition:all .18s}
-      nav a:hover::after{content:'';position:absolute;left:8px;right:8px;bottom:6px;height:3px;border-radius:6px;background:linear-gradient(90deg,var(--magenta),var(--blue));transform:scaleX(1);opacity:1}
-      nav a::after{transform-origin:left center;transform:scaleX(0);opacity:0;transition:transform .28s ease,opacity .28s}
+    /* active slot glow pulse */
+    .slot.active::after {
+      content: '';
+      position: absolute;
+      inset: -6px;
+      border-radius: 12px;
+      background: radial-gradient(circle at 30% 20%, rgba(0, 191, 255, 0.12), transparent 30%);
+      pointer-events: none;
+      animation: glowPulse 2s infinite
+    }
 
-      /* layout */
-      .container{max-width:1200px;margin:110px auto 60px;padding:20px;display:grid;grid-template-columns:1fr 360px;gap:22px;position:relative;z-index:10}
-      @media (max-width:980px){.container{grid-template-columns:1fr;padding:14px} .hero-3d{display:none}}
+    @keyframes glowPulse {
+      0% {
+        opacity: 0.8;
+        transform: scale(0.98)
+      }
 
-      /* hero */
-      .hero{display:flex;align-items:center;gap:16px}
-      .hero-card{flex:1;padding:20px}
-      .spline-wrap{position:relative;width:360px;height:220px;flex-shrink:0}
-      .spline-wrap iframe{width:100%;height:100%;border-radius:12px;border:0;filter:drop-shadow(0 30px 80px rgba(72,61,139,0.18));pointer-events:none}
+      50% {
+        opacity: 0.18;
+        transform: scale(1.06)
+      }
 
-      /* timetable */
-      .panel{padding:18px}
-      .tabs{display:flex;gap:8px;margin-bottom:12px}
-      .tab{padding:8px 12px;border-radius:12px;cursor:pointer;color:#d7eafe}
-      .tab.active{background:linear-gradient(90deg,var(--magenta),var(--blue),var(--violet));color:white;box-shadow:0 12px 40px rgba(138,43,226,0.12)}
-      .flip-pane{transition:transform .6s cubic-bezier(.2,.9,.2,1);transform-style:preserve-3d}
-      .flip-pane.flipped{transform:rotateX(180deg)}
-      .pane{backface-visibility:hidden;min-height:320px}
-      .pane.back{transform:rotateX(180deg);position:absolute;inset:18px}
+      100% {
+        opacity: 0.8;
+        transform: scale(0.98)
+      }
+    }
 
-      .timetable-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
-      .slot{padding:10px;border-radius:10px;background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.03);transition:transform .18s,box-shadow .18s}
-      .slot.active{outline:2px solid rgba(0,191,255,0.16);box-shadow:0 20px 50px rgba(0,191,255,0.06);transform:translateY(-6px)}
-      .slot .meta{font-size:12px;color:#9fb9d9;margin-top:6px}
+    /* FAB */
+    .fab {
+      position: fixed;
+      right: 22px;
+      bottom: 22px;
+      width: 56px;
+      height: 56px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--magenta), var(--blue));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      box-shadow: 0 18px 50px rgba(106, 90, 205, 0.18);
+      z-index: 70
+    }
 
-      /* sidebar */
-      .sidebar .card{margin-bottom:12px;padding:14px}
-      .countdown{font-weight:700;font-size:18px}
+    /* search */
+    .search-input {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.03);
+      padding: 8px 12px;
+      border-radius: 10px;
+      color: #dff3ff;
+      min-width: 220px
+    }
 
-      /* charts */
-      .chart-bar{height:120px;display:flex;align-items:end;gap:8px}
-      .bar{width:22px;background:linear-gradient(180deg,var(--blue),var(--violet));border-radius:6px;transition:height .8s cubic-bezier(.2,.9,.2,1)}
+    /* skeleton */
+    .skeleton {
+      background: linear-gradient(90deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.03));
+      background-size: 200% 100%;
+      animation: skeletonAnim 1.4s linear infinite;
+      border-radius: 8px
+    }
 
-      /* toast */
-      .toast{position:fixed;right:18px;bottom:18px;padding:12px 16px;border-radius:12px;backdrop-filter:blur(8px);background:rgba(6,10,16,0.72);border:1px solid rgba(255,255,255,0.04);color:#e6eef8;z-index:60}
+    @keyframes skeletonAnim {
+      0% {
+        background-position: 0% 0%
+      }
 
-      /* particles */
-      canvas#particles{position:fixed;inset:0;z-index:1;pointer-events:none}
-    </style>
-  </head>
-  <body>
-    <div class="bg-animated" aria-hidden="true"></div>
-    <canvas id="particles" aria-hidden="true"></canvas>
+      100% {
+        background-position: 200% 0%
+      }
+    }
 
-    <header class="site-header">
-      <div class="glass flex items-center gap-4 px-4 py-3 shadow-sm">
-        <div class="brand gradient-text">Timelytics</div>
-        <div class="text-xs text-gray-300">Smart Classroom & Timetable Scheduler</div>
-      </div>
-      <nav class="glass flex items-center gap-2 px-3 py-2">
-        <a href="#dashboard" class="tab-link">Dashboard</a>
-        <a href="#timetable" class="tab-link">Timetable</a>
-        <a href="#reports" class="tab-link">Reports</a>
-        <a href="#notifications" class="tab-link">Notifications</a>
-        <a href="#logout" class="tab-link">Logout</a>
-      </nav>
-    </header>
+    /* header */
+    header.site-header {
+      position: fixed;
+      top: 12px;
+      left: 12px;
+      right: 12px;
+      height: 68px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 18px;
+      z-index: 30
+    }
 
-    <main class="container">
-      <section class="hero glass glow-border flex items-center gap-6 panel">
-        <div class="hero-card">
-          <div class="flex items-center justify-between">
-            <div>
-              <h1 class="text-3xl font-extrabold">Welcome, <span id="studentName">Alex</span> 👋</h1>
-              <p class="text-sm text-gray-300 mt-2">Here’s your personalized academic schedule and insights.</p>
-            </div>
-            <div class="flex gap-2">
-              <button id="exportPdf" class="neon-btn">Export as PDF</button>
-              <button id="exportDoc" class="neon-btn">Export as DOCX</button>
-            </div>
+    .brand {
+      font-weight: 800;
+      font-size: 20px;
+      letter-spacing: 0.4px
+    }
+
+    .gradient-text {
+      background: linear-gradient(90deg, var(--magenta), var(--blue), var(--violet));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      background-size: 200% 200%;
+      animation: gradientShift 4s ease infinite
+    }
+
+    @keyframes gradientShift {
+      0% {
+        background-position: 0% 50%
+      }
+
+      100% {
+        background-position: 100% 50%
+      }
+    }
+
+    nav a {
+      position: relative;
+      padding: 8px 10px;
+      border-radius: 8px;
+      color: #cfe9ff;
+      transition: all .18s
+    }
+
+    nav a:hover::after {
+      content: '';
+      position: absolute;
+      left: 8px;
+      right: 8px;
+      bottom: 6px;
+      height: 3px;
+      border-radius: 6px;
+      background: linear-gradient(90deg, var(--magenta), var(--blue));
+      transform: scaleX(1);
+      opacity: 1
+    }
+
+    nav a::after {
+      transform-origin: left center;
+      transform: scaleX(0);
+      opacity: 0;
+      transition: transform .28s ease, opacity .28s
+    }
+
+    /* layout */
+    .container {
+      max-width: 1200px;
+      margin: 110px auto 60px;
+      padding: 20px;
+      display: grid;
+      grid-template-columns: 1fr 360px;
+      gap: 22px;
+      position: relative;
+      z-index: 10
+    }
+
+    @media (max-width:980px) {
+      .container {
+        grid-template-columns: 1fr;
+        padding: 14px
+      }
+
+      .hero-3d {
+        display: none
+      }
+    }
+
+    /* hero */
+    .hero {
+      display: flex;
+      align-items: center;
+      gap: 16px
+    }
+
+    .hero-card {
+      flex: 1;
+      padding: 20px
+    }
+
+    .spline-wrap {
+      position: relative;
+      width: 360px;
+      height: 220px;
+      flex-shrink: 0
+    }
+
+    .spline-wrap iframe {
+      width: 100%;
+      height: 100%;
+      border-radius: 12px;
+      border: 0;
+      filter: drop-shadow(0 30px 80px rgba(72, 61, 139, 0.18));
+      pointer-events: none
+    }
+
+    /* timetable */
+    .panel {
+      padding: 18px
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px
+    }
+
+    .tab {
+      padding: 8px 12px;
+      border-radius: 12px;
+      cursor: pointer;
+      color: #d7eafe
+    }
+
+    .tab.active {
+      background: linear-gradient(90deg, var(--magenta), var(--blue), var(--violet));
+      color: white;
+      box-shadow: 0 12px 40px rgba(138, 43, 226, 0.12)
+    }
+
+    .flip-pane {
+      transition: transform .6s cubic-bezier(.2, .9, .2, 1);
+      transform-style: preserve-3d
+    }
+
+    .flip-pane.flipped {
+      transform: rotateX(180deg)
+    }
+
+    .pane {
+      backface-visibility: hidden;
+      min-height: 320px
+    }
+
+    .pane.back {
+      transform: rotateX(180deg);
+      position: absolute;
+      inset: 18px
+    }
+
+    .timetable-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px
+    }
+
+    .slot {
+      padding: 10px;
+      border-radius: 10px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
+      border: 1px solid rgba(255, 255, 255, 0.03);
+      transition: transform .18s, box-shadow .18s
+    }
+
+    .slot.active {
+      outline: 2px solid rgba(0, 191, 255, 0.16);
+      box-shadow: 0 20px 50px rgba(0, 191, 255, 0.06);
+      transform: translateY(-6px)
+    }
+
+    .slot .meta {
+      font-size: 12px;
+      color: #9fb9d9;
+      margin-top: 6px
+    }
+
+    /* sidebar */
+    .sidebar .card {
+      margin-bottom: 12px;
+      padding: 14px
+    }
+
+    .countdown {
+      font-weight: 700;
+      font-size: 18px
+    }
+
+    /* charts */
+    .chart-bar {
+      height: 120px;
+      display: flex;
+      align-items: end;
+      gap: 8px
+    }
+
+    .bar {
+      width: 22px;
+      background: linear-gradient(180deg, var(--blue), var(--violet));
+      border-radius: 6px;
+      transition: height .8s cubic-bezier(.2, .9, .2, 1)
+    }
+
+    /* toast */
+    .toast {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      padding: 12px 16px;
+      border-radius: 12px;
+      backdrop-filter: blur(8px);
+      background: rgba(6, 10, 16, 0.72);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      color: #e6eef8;
+      z-index: 60
+    }
+
+    /* particles */
+    canvas#particles {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none
+    }
+  </style>
+</head>
+
+<body>
+  <div class="bg-animated" aria-hidden="true"></div>
+  <canvas id="particles" aria-hidden="true"></canvas>
+
+  <header class="site-header">
+    <div class="glass flex items-center gap-4 px-4 py-3 shadow-sm">
+      <div class="brand gradient-text">Timelytics</div>
+      <div class="text-xs text-gray-300">Smart Classroom & Timetable Scheduler</div>
+    </div>
+    <nav class="glass flex items-center gap-2 px-3 py-2">
+      <a href="#dashboard" class="tab-link">Dashboard</a>
+      <a href="#timetable" class="tab-link">Timetable</a>
+      <a href="#reports" class="tab-link">Reports</a>
+      <a href="#notifications" class="tab-link">Notifications</a>
+      <a href="#logout" class="tab-link">Logout</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <section class="hero glass glow-border flex items-center gap-6 panel">
+      <div class="hero-card">
+        <div class="flex items-center justify-between">
+          <div>
+            <h1 class="text-3xl font-extrabold">Welcome, <span id="studentName">Alex</span> 👋</h1>
+            <p class="text-sm text-gray-300 mt-2">Here’s your personalized academic schedule and insights.</p>
           </div>
+          <div class="flex gap-2">
+            <button id="exportPdf" class="neon-btn">Export as PDF</button>
+            <button id="exportDoc" class="neon-btn">Export as DOCX</button>
+          </div>
+        </div>
 
-          <div class="mt-6 relative">
-            <div class="glass rounded-lg p-3">
-              <div class="tabs" role="tablist">
-                <div class="tab active" data-tab="weekly">Weekly View</div>
-                <div class="tab" data-tab="today">Today</div>
-                <div class="tab" data-tab="electives">Electives</div>
-              </div>
+        <div class="mt-6 relative">
+          <div class="glass rounded-lg p-3">
+            <div class="tabs" role="tablist">
+              <div class="tab active" data-tab="weekly">Weekly View</div>
+              <div class="tab" data-tab="today">Today</div>
+              <div class="tab" data-tab="electives">Electives</div>
+            </div>
 
-              <div class="relative" style="min-height:340px">
-                <div id="flipPane" class="flip-pane">
-                    <div class="pane front">
-                    <div id="timetableSkeleton" aria-hidden="true" class="timetable-grid">
-                      <!-- skeleton placeholders -->
-                      <div class="skeleton" style="height:12rem;border-radius:8px"></div>
-                    </div>
-                    <div id="timetable" class="timetable-grid" aria-live="polite"></div>
+            <div class="relative" style="min-height:340px">
+              <div id="flipPane" class="flip-pane">
+                <div class="pane front">
+                  <div id="timetableSkeleton" aria-hidden="true" class="timetable-grid">
+                    <!-- skeleton placeholders -->
+                    <div class="skeleton" style="height:12rem;border-radius:8px"></div>
                   </div>
-                  <div class="pane back">
-                    <div id="electives" class="p-4">Select electives from the list (demo).</div>
-                  </div>
+                  <div id="timetable" class="timetable-grid" aria-live="polite"></div>
+                </div>
+                <div class="pane back">
+                  <div id="electives" class="p-4">Select electives from the list (demo).</div>
                 </div>
               </div>
             </div>
           </div>
         </div>
+      </div>
 
-        <div class="hero-3d spline-wrap">
-          <!-- Spline 3D robot iframe (pointer-events none so UI remains interactive) -->
-          <iframe src="https://prod.spline.design/ssFBItAis0Ryw7KI/scene.splinecode" title="robot" frameborder="0" loading="lazy"></iframe>
-        </div>
-      </section>
+    </section>
 
-      <aside class="sidebar">
-        <div class="card glass">
-          <div class="flex items-center justify-between">
-            <div>
-              <div class="text-xs text-gray-300">Next Class</div>
-              <div id="nextClass" class="text-lg font-bold">Calculus</div>
-            </div>
-            <div class="text-right">
-              <div class="text-xs text-gray-400">Starts in</div>
-              <div id="countdown" class="countdown">00:00:00</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="card glass">
-          <div class="text-xs text-gray-300">Faculty Message</div>
-          <div class="mt-2 text-sm text-gray-200">Please submit Assignment 2 by Friday. Office hours updated.</div>
-        </div>
-
-        <div class="card glass">
-          <div class="text-xs text-gray-300">Attendance Summary</div>
-          <div class="mt-3 flex items-center gap-4">
-            <svg width="72" height="72" viewBox="0 0 36 36">
-              <path d="M18 2a16 16 0 1016 16A16 16 0 0018 2zm0 28a12 12 0 1112-12 12 12 0 01-12 12z" fill="#0c1220"/>
-              <circle cx="18" cy="18" r="10" fill="none" stroke="#17384b" stroke-width="2"/>
-              <circle id="attendanceArc" cx="18" cy="18" r="10" fill="none" stroke="#00BFFF" stroke-width="2" stroke-dasharray="0 100" transform="rotate(-90 18 18)"/>
-            </svg>
-            <div>
-              <div class="text-sm">Overall</div>
-              <div id="attendancePct" class="text-xl font-bold neon-text">0%</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="card glass">
-          <div class="text-xs text-gray-300">Reports & Analytics</div>
-          <div class="mt-3">
-            <div class="chart-bar" id="utilChart"></div>
-            <div class="mt-3 chart-bar" id="studyChart"></div>
-          </div>
-        </div>
-      </aside>
-
-      <section id="reports" class="glass panel" style="grid-column:1 / -1">
+    <aside class="sidebar">
+      <div class="card glass">
         <div class="flex items-center justify-between">
-          <h3 class="font-semibold">Reports & Quick Export</h3>
-          <div class="text-sm text-gray-400">Interactive mini-charts</div>
-        </div>
-        <div class="mt-4 grid grid-cols-2 gap-4">
-          <div class="p-4 glass">
-            <div class="text-xs text-gray-300">Classroom Utilization</div>
-            <div id="barDemo" class="mt-3 chart-bar"></div>
+          <div>
+            <div class="text-xs text-gray-300">Next Class</div>
+            <div id="nextClass" class="text-lg font-bold">Calculus</div>
           </div>
-          <div class="p-4 glass">
-            <div class="text-xs text-gray-300">Weekly Study Hours</div>
-            <div id="hoursDemo" class="mt-3 chart-bar"></div>
+          <div class="text-right">
+            <div class="text-xs text-gray-400">Starts in</div>
+            <div id="countdown" class="countdown">00:00:00</div>
           </div>
         </div>
-      </section>
-    </main>
+      </div>
 
-  <div id="tooltip" class="toast" role="status" aria-live="polite" style="display:none;position:fixed;left:18px;bottom:100px;min-width:260px"></div>
+      <div class="card glass">
+        <div class="text-xs text-gray-300">Faculty Message</div>
+        <div class="mt-2 text-sm text-gray-200">Please submit Assignment 2 by Friday. Office hours updated.</div>
+      </div>
+
+      <div class="card glass">
+        <div class="text-xs text-gray-300">Attendance Summary</div>
+        <div class="mt-3 flex items-center gap-4">
+          <svg width="72" height="72" viewBox="0 0 36 36">
+            <path d="M18 2a16 16 0 1016 16A16 16 0 0018 2zm0 28a12 12 0 1112-12 12 12 0 01-12 12z" fill="#0c1220" />
+            <circle cx="18" cy="18" r="10" fill="none" stroke="#17384b" stroke-width="2" />
+            <circle id="attendanceArc" cx="18" cy="18" r="10" fill="none" stroke="#00BFFF" stroke-width="2"
+              stroke-dasharray="0 100" transform="rotate(-90 18 18)" />
+          </svg>
+          <div>
+            <div class="text-sm">Overall</div>
+            <div id="attendancePct" class="text-xl font-bold neon-text">0%</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card glass">
+        <div class="text-xs text-gray-300">Reports & Analytics</div>
+        <div class="mt-3">
+          <div class="chart-bar" id="utilChart"></div>
+          <div class="mt-3 chart-bar" id="studyChart"></div>
+        </div>
+      </div>
+    </aside>
+
+    <section id="reports" class="glass panel" style="grid-column:1 / -1">
+      <div class="flex items-center justify-between">
+        <h3 class="font-semibold">Reports & Quick Export</h3>
+        <div class="text-sm text-gray-400">Interactive mini-charts</div>
+      </div>
+      <div class="mt-4 grid grid-cols-2 gap-4">
+        <div class="p-4 glass">
+          <div class="text-xs text-gray-300">Classroom Utilization</div>
+          <div id="barDemo" class="mt-3 chart-bar"></div>
+        </div>
+        <div class="p-4 glass">
+          <div class="text-xs text-gray-300">Weekly Study Hours</div>
+          <div id="hoursDemo" class="mt-3 chart-bar"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="tooltip" class="toast" role="status" aria-live="polite"
+    style="display:none;position:fixed;left:18px;bottom:100px;min-width:260px"></div>
 
   <!-- Floating Action Button -->
   <button id="fab" class="fab" aria-label="Quick actions">＋</button>
@@ -225,166 +528,179 @@
   <!-- third-party charts -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
-      // Sample timetable JSON (Mon-Fri, simple periods)
-      const timetableJSON = {
-        student: 'Alex S.',
-        week: ['Mon','Tue','Wed','Thu','Fri'],
-        periods: ['09:00-10:00','10:15-11:15','11:30-12:30','13:30-14:30','14:45-15:45'],
-        slots: [
-          [{sub:'Calculus',fac:'A. Sharma',room:'R101',time:'09:00-10:00'},{sub:'Physics',fac:'M. Khan',room:'R204',time:'10:15-11:15'},{sub:'---',fac:'',room:'',time:''},{sub:'ML Lab',fac:'B. Gupta',room:'Lab L1',time:'13:30-14:30'},{sub:'Study',fac:'',room:'',time:'14:45-15:45'}],
-          [{sub:'Chemistry',fac:'R. Sen',room:'R110',time:'09:00-10:00'},{sub:'Calculus',fac:'A. Sharma',room:'R101',time:'10:15-11:15'},{sub:'Physics',fac:'M. Khan',room:'R204',time:'11:30-12:30'},{sub:'---',fac:'',room:'',time:''},{sub:'Elective',fac:'L. Nair',room:'R305',time:'14:45-15:45'}],
-          [{sub:'Algorithms',fac:'P. Roy',room:'R301',time:'09:00-10:00'},{sub:'Databases',fac:'L. Nair',room:'R212',time:'10:15-11:15'},{sub:'Seminar',fac:'Guest',room:'R100',time:'11:30-12:30'},{sub:'Project',fac:'B. Gupta',room:'R220',time:'13:30-14:30'},{sub:'AI Lab',fac:'B. Gupta',room:'Lab L1',time:'14:45-15:45'}],
-          [{sub:'Databases',fac:'L. Nair',room:'R212',time:'09:00-10:00'},{sub:'Algorithms',fac:'P. Roy',room:'R301',time:'10:15-11:15'},{sub:'Elective',fac:'L. Nair',room:'R305',time:'11:30-12:30'},{sub:'ML Lab',fac:'B. Gupta',room:'Lab L1',time:'13:30-14:30'},{sub:'---',fac:'',room:'',time:''}],
-          [{sub:'AI Lab',fac:'B. Gupta',room:'Lab L1',time:'09:00-10:00'},{sub:'Programming',fac:'S. Iyer',room:'R109',time:'10:15-11:15'},{sub:'Calculus',fac:'A. Sharma',room:'R101',time:'11:30-12:30'},{sub:'Physics',fac:'M. Khan',room:'R204',time:'13:30-14:30'},{sub:'Project',fac:'B. Gupta',room:'R220',time:'14:45-15:45'}]
-        ]
-      };
+    // Sample timetable JSON (Mon-Fri, simple periods)
+    const timetableJSON = {
+      student: 'Alex S.',
+      week: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
+      periods: ['09:00-10:00', '10:15-11:15', '11:30-12:30', '13:30-14:30', '14:45-15:45'],
+      slots: [
+        [{ sub: 'Calculus', fac: 'A. Sharma', room: 'R101', time: '09:00-10:00' }, { sub: 'Physics', fac: 'M. Khan', room: 'R204', time: '10:15-11:15' }, { sub: '---', fac: '', room: '', time: '' }, { sub: 'ML Lab', fac: 'B. Gupta', room: 'Lab L1', time: '13:30-14:30' }, { sub: 'Study', fac: '', room: '', time: '14:45-15:45' }],
+        [{ sub: 'Chemistry', fac: 'R. Sen', room: 'R110', time: '09:00-10:00' }, { sub: 'Calculus', fac: 'A. Sharma', room: 'R101', time: '10:15-11:15' }, { sub: 'Physics', fac: 'M. Khan', room: 'R204', time: '11:30-12:30' }, { sub: '---', fac: '', room: '', time: '' }, { sub: 'Elective', fac: 'L. Nair', room: 'R305', time: '14:45-15:45' }],
+        [{ sub: 'Algorithms', fac: 'P. Roy', room: 'R301', time: '09:00-10:00' }, { sub: 'Databases', fac: 'L. Nair', room: 'R212', time: '10:15-11:15' }, { sub: 'Seminar', fac: 'Guest', room: 'R100', time: '11:30-12:30' }, { sub: 'Project', fac: 'B. Gupta', room: 'R220', time: '13:30-14:30' }, { sub: 'AI Lab', fac: 'B. Gupta', room: 'Lab L1', time: '14:45-15:45' }],
+        [{ sub: 'Databases', fac: 'L. Nair', room: 'R212', time: '09:00-10:00' }, { sub: 'Algorithms', fac: 'P. Roy', room: 'R301', time: '10:15-11:15' }, { sub: 'Elective', fac: 'L. Nair', room: 'R305', time: '11:30-12:30' }, { sub: 'ML Lab', fac: 'B. Gupta', room: 'Lab L1', time: '13:30-14:30' }, { sub: '---', fac: '', room: '', time: '' }],
+        [{ sub: 'AI Lab', fac: 'B. Gupta', room: 'Lab L1', time: '09:00-10:00' }, { sub: 'Programming', fac: 'S. Iyer', room: 'R109', time: '10:15-11:15' }, { sub: 'Calculus', fac: 'A. Sharma', room: 'R101', time: '11:30-12:30' }, { sub: 'Physics', fac: 'M. Khan', room: 'R204', time: '13:30-14:30' }, { sub: 'Project', fac: 'B. Gupta', room: 'R220', time: '14:45-15:45' }]
+      ]
+    };
 
-  // Populate student name
-      document.getElementById('studentName').textContent = timetableJSON.student;
+    // Populate student name
+    document.getElementById('studentName').textContent = timetableJSON.student;
 
-  // Real-time clock in header
-  const clockEl = document.createElement('div'); clockEl.className='text-sm text-gray-300 ml-4'; document.querySelector('.brand').after(clockEl);
-  function tickClock(){ const d=new Date(); clockEl.textContent = d.toLocaleTimeString(); } tickClock(); setInterval(tickClock,1000);
+    // Real-time clock in header
+    const clockEl = document.createElement('div'); clockEl.className = 'text-sm text-gray-300 ml-4'; document.querySelector('.brand').after(clockEl);
+    function tickClock() { const d = new Date(); clockEl.textContent = d.toLocaleTimeString(); } tickClock(); setInterval(tickClock, 1000);
 
-      // Build timetable grid
-      const timetableEl = document.getElementById('timetable');
+    // Build timetable grid
+    const timetableEl = document.getElementById('timetable');
     // helper: create Add to Calendar button
-    function makeAddBtn(slot){ const btn = document.createElement('button'); btn.className='neon-btn'; btn.style.padding='6px 8px'; btn.style.fontSize='12px'; btn.textContent='Add to Calendar'; btn.setAttribute('aria-label', `Add ${slot.sub} to calendar`); btn.addEventListener('click', ()=> addToCalendar(slot)); return btn; }
+    function makeAddBtn(slot) { const btn = document.createElement('button'); btn.className = 'neon-btn'; btn.style.padding = '6px 8px'; btn.style.fontSize = '12px'; btn.textContent = 'Add to Calendar'; btn.setAttribute('aria-label', `Add ${slot.sub} to calendar`); btn.addEventListener('click', () => addToCalendar(slot)); return btn; }
 
     // add-to-calendar: create a basic .ics file and offer download
-    function addToCalendar(slot){ try{ const dtStart = slot.time.split('-')[0].replace(':','') + '00'; const today = new Date(); const yyyy = today.getFullYear(); // naive: schedule for next occurrence using current date
-      const uid = 'timelytics-' + Date.now(); const title = slot.sub; const desc = `${slot.sub} with ${slot.fac} in ${slot.room}`; const start = new Date(); // approximate: set start to next hour based on slot
-      const [h,m] = slot.time.split('-')[0].split(':').map(Number); start.setHours(h); start.setMinutes(m); start.setSeconds(0);
-      const end = new Date(start.getTime() + 60*60*1000);
-      function toICS(dt){ return dt.toISOString().replace(/[-:]/g,'').split('.')[0] + 'Z'; }
-      const ics = `BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//Timelytics//EN\nBEGIN:VEVENT\nUID:${uid}\nDTSTAMP:${toICS(new Date())}\nDTSTART:${toICS(start)}\nDTEND:${toICS(end)}\nSUMMARY:${title}\nDESCRIPTION:${desc}\nEND:VEVENT\nEND:VCALENDAR`;
-      const blob = new Blob([ics],{type:'text/calendar'}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `${title.replace(/\s+/g,'_')}.ics`; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url); showToast('Added to calendar (downloaded .ics)'); }catch(err){ console.error(err); showToast('Could not add to calendar'); } }
+    function addToCalendar(slot) {
+      try {
+        const dtStart = slot.time.split('-')[0].replace(':', '') + '00'; const today = new Date(); const yyyy = today.getFullYear(); // naive: schedule for next occurrence using current date
+        const uid = 'timelytics-' + Date.now(); const title = slot.sub; const desc = `${slot.sub} with ${slot.fac} in ${slot.room}`; const start = new Date(); // approximate: set start to next hour based on slot
+        const [h, m] = slot.time.split('-')[0].split(':').map(Number); start.setHours(h); start.setMinutes(m); start.setSeconds(0);
+        const end = new Date(start.getTime() + 60 * 60 * 1000);
+        function toICS(dt) { return dt.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z'; }
+        const ics = `BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//Timelytics//EN\nBEGIN:VEVENT\nUID:${uid}\nDTSTAMP:${toICS(new Date())}\nDTSTART:${toICS(start)}\nDTEND:${toICS(end)}\nSUMMARY:${title}\nDESCRIPTION:${desc}\nEND:VEVENT\nEND:VCALENDAR`;
+        const blob = new Blob([ics], { type: 'text/calendar' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `${title.replace(/\s+/g, '_')}.ics`; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url); showToast('Added to calendar (downloaded .ics)');
+      } catch (err) { console.error(err); showToast('Could not add to calendar'); }
+    }
 
-      // drag & drop state
-      let dragSource = null;
-      function enableDragDrop(el, dIndex, pIndex){ el.draggable = true; el.addEventListener('dragstart', (e)=>{ dragSource = {d:dIndex,p:pIndex}; e.dataTransfer.effectAllowed='move'; el.style.opacity=0.5; }); el.addEventListener('dragend', ()=>{ dragSource=null; el.style.opacity=1; }); el.addEventListener('dragover', (e)=> e.preventDefault()); el.addEventListener('drop', (e)=>{ e.preventDefault(); if(!dragSource) return; const src = dragSource; const dst = {d:dIndex,p:pIndex}; // swap in JSON
-        const tmp = timetableJSON.slots[dst.d][dst.p]; timetableJSON.slots[dst.d][dst.p] = timetableJSON.slots[src.d][src.p]; timetableJSON.slots[src.d][src.p] = tmp; buildTimetable(); showToast('Class rescheduled (simulated)'); }); }
-      function buildTimetable(){
-        timetableEl.innerHTML = '';
-        for(let d=0; d<5; d++){
-          const col = document.createElement('div');
-          const dayTitle = document.createElement('div'); dayTitle.className='text-sm text-gray-300 mb-2'; dayTitle.textContent = timetableJSON.week[d]; col.appendChild(dayTitle);
-          timetableJSON.slots[d].forEach((slot, p)=>{
-            const s = document.createElement('div'); s.className='slot'; s.tabIndex=0; s.style.position='relative';
-            s.innerHTML = `<div class=\"font-semibold\">${slot.sub}</div><div class=\"meta\">${slot.fac} · ${slot.room}</div><div class=\"meta\">${slot.time}</div>`;
-            if(slot.sub && slot.sub !== '---') s.dataset.time = slot.time;
-            s.addEventListener('mouseenter', ()=> showExplain(s, slot));
-            s.addEventListener('mouseleave', hideExplain);
-            s.setAttribute('role','button'); s.setAttribute('aria-label', `${slot.sub} by ${slot.fac} at ${slot.room} ${slot.time}`);
-            // Add-to-calendar
-            if(slot.sub && slot.sub !== '---'){ const add = makeAddBtn(slot); add.style.marginTop='8px'; s.appendChild(add); }
-            // enable drag/drop
-            enableDragDrop(s,d,p);
-            col.appendChild(s);
-          });
-          timetableEl.appendChild(col);
-        }
-        // remove skeleton after render
-        const sk = document.getElementById('timetableSkeleton'); if(sk) sk.remove();
-        // set stagger delays for panels/cards
-        document.querySelectorAll('.panel, .card').forEach((el,i)=> el.style.setProperty('--delay', (i*80)+'ms'));
-      }
-      buildTimetable();
-
-      // FAB quick actions
-      document.getElementById('fab').addEventListener('click', ()=>{
-        const menu = document.createElement('div'); menu.className='glass p-3'; menu.style.position='fixed'; menu.style.right='92px'; menu.style.bottom='22px'; menu.style.zIndex=80; menu.innerHTML = `<button class=\"neon-btn\" id=\"quick-add\">Quick Add</button> <button class=\"neon-btn\" id=\"quick-notif\">Test Notification</button>`;
-        document.body.appendChild(menu);
-        document.getElementById('quick-notif').addEventListener('click', ()=> showToast('Test notification — schedule updated'));
-        document.getElementById('quick-add').addEventListener('click', ()=> showToast('Quick Add (simulated)'));
-        setTimeout(()=> menu.remove(),5000);
+    // drag & drop state
+    let dragSource = null;
+    function enableDragDrop(el, dIndex, pIndex) {
+      el.draggable = true; el.addEventListener('dragstart', (e) => { dragSource = { d: dIndex, p: pIndex }; e.dataTransfer.effectAllowed = 'move'; el.style.opacity = 0.5; }); el.addEventListener('dragend', () => { dragSource = null; el.style.opacity = 1; }); el.addEventListener('dragover', (e) => e.preventDefault()); el.addEventListener('drop', (e) => {
+        e.preventDefault(); if (!dragSource) return; const src = dragSource; const dst = { d: dIndex, p: pIndex }; // swap in JSON
+        const tmp = timetableJSON.slots[dst.d][dst.p]; timetableJSON.slots[dst.d][dst.p] = timetableJSON.slots[src.d][src.p]; timetableJSON.slots[src.d][src.p] = tmp; buildTimetable(); showToast('Class rescheduled (simulated)');
       });
-
-      // Explainability tooltip
-      const tip = document.getElementById('tooltip');
-      function showExplain(el, slot){
-        tip.style.display='block'; tip.style.opacity=1; tip.innerHTML = `<strong>${slot.sub}</strong><div style="font-size:12px;color:#bcdff7;margin-top:6px">Chosen because it maps to your major and required credits. Room: ${slot.room}</div>`;
-        const rect = el.getBoundingClientRect(); tip.style.left = (rect.right + 12) + 'px'; tip.style.top = (Math.max(90,rect.top)) + 'px';
+    }
+    function buildTimetable() {
+      timetableEl.innerHTML = '';
+      for (let d = 0; d < 5; d++) {
+        const col = document.createElement('div');
+        const dayTitle = document.createElement('div'); dayTitle.className = 'text-sm text-gray-300 mb-2'; dayTitle.textContent = timetableJSON.week[d]; col.appendChild(dayTitle);
+        timetableJSON.slots[d].forEach((slot, p) => {
+          const s = document.createElement('div'); s.className = 'slot'; s.tabIndex = 0; s.style.position = 'relative';
+          s.innerHTML = `<div class=\"font-semibold\">${slot.sub}</div><div class=\"meta\">${slot.fac} · ${slot.room}</div><div class=\"meta\">${slot.time}</div>`;
+          if (slot.sub && slot.sub !== '---') s.dataset.time = slot.time;
+          s.addEventListener('mouseenter', () => showExplain(s, slot));
+          s.addEventListener('mouseleave', hideExplain);
+          s.setAttribute('role', 'button'); s.setAttribute('aria-label', `${slot.sub} by ${slot.fac} at ${slot.room} ${slot.time}`);
+          // Add-to-calendar
+          if (slot.sub && slot.sub !== '---') { const add = makeAddBtn(slot); add.style.marginTop = '8px'; s.appendChild(add); }
+          // enable drag/drop
+          enableDragDrop(s, d, p);
+          col.appendChild(s);
+        });
+        timetableEl.appendChild(col);
       }
-      function hideExplain(){ tip.style.opacity=0; setTimeout(()=> tip.style.display='none',250) }
+      // remove skeleton after render
+      const sk = document.getElementById('timetableSkeleton'); if (sk) sk.remove();
+      // set stagger delays for panels/cards
+      document.querySelectorAll('.panel, .card').forEach((el, i) => el.style.setProperty('--delay', (i * 80) + 'ms'));
+    }
+    buildTimetable();
 
-      // Highlight current class based on system time
-      function parseTimeRange(t){ if(!t) return null; const [a,b]=t.split('-'); return {start: a, end: b}; }
-      function toMinutes(hm){ const [h,m]=hm.split(':').map(Number); return h*60+m; }
-      function highlightCurrent(){
-        const now = new Date(); const minutes = now.getHours()*60 + now.getMinutes();
-        document.querySelectorAll('.slot').forEach(s=> s.classList.remove('active'));
-        document.querySelectorAll('.slot').forEach(s=>{
-          const t = s.dataset.time; if(!t) return; const {start,end} = parseTimeRange(t); if(!start) return; const sMin = toMinutes(start); const eMin = toMinutes(end);
-          if(minutes >= sMin && minutes <= eMin){ s.classList.add('active'); const next = document.getElementById('nextClass'); next.textContent = s.querySelector('.font-semibold').textContent; const countdownEl = document.getElementById('countdown'); const secLeft = (eMin - minutes)*60; startCountdown(secLeft); }
-        })
-      }
-      function startCountdown(seconds){ clearInterval(window.__cd); function fmt(s){ const h=Math.floor(s/3600), m=Math.floor((s%3600)/60), sec=s%60; return [h,m,sec].map(x=>String(x).padStart(2,'0')).join(':') }
-        document.getElementById('countdown').textContent = fmt(seconds);
-        window.__cd = setInterval(()=>{ seconds--; if(seconds<0){ clearInterval(window.__cd); highlightCurrent(); } else document.getElementById('countdown').textContent = fmt(seconds); },1000);
-      }
-      highlightCurrent(); setInterval(highlightCurrent,60000);
+    // FAB quick actions
+    document.getElementById('fab').addEventListener('click', () => {
+      const menu = document.createElement('div'); menu.className = 'glass p-3'; menu.style.position = 'fixed'; menu.style.right = '92px'; menu.style.bottom = '22px'; menu.style.zIndex = 80; menu.innerHTML = `<button class=\"neon-btn\" id=\"quick-add\">Quick Add</button> <button class=\"neon-btn\" id=\"quick-notif\">Test Notification</button>`;
+      document.body.appendChild(menu);
+      document.getElementById('quick-notif').addEventListener('click', () => showToast('Test notification — schedule updated'));
+      document.getElementById('quick-add').addEventListener('click', () => showToast('Quick Add (simulated)'));
+      setTimeout(() => menu.remove(), 5000);
+    });
 
-      // Tabs & flip animation
-      document.querySelectorAll('.tab').forEach(t=> t.addEventListener('click', ()=>{ document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active')); t.classList.add('active'); const pane = document.getElementById('flipPane'); if(t.dataset.tab === 'electives'){ pane.classList.add('flipped'); } else pane.classList.remove('flipped'); }))
+    // Explainability tooltip
+    const tip = document.getElementById('tooltip');
+    function showExplain(el, slot) {
+      tip.style.display = 'block'; tip.style.opacity = 1; tip.innerHTML = `<strong>${slot.sub}</strong><div style="font-size:12px;color:#bcdff7;margin-top:6px">Chosen because it maps to your major and required credits. Room: ${slot.room}</div>`;
+      const rect = el.getBoundingClientRect(); tip.style.left = (rect.right + 12) + 'px'; tip.style.top = (Math.max(90, rect.top)) + 'px';
+    }
+    function hideExplain() { tip.style.opacity = 0; setTimeout(() => tip.style.display = 'none', 250) }
 
-  // Charts (Chart.js interactive replacements)
-  function makeBarChart(ctxOrId, labels, data, color){ let ctx; if(typeof ctxOrId === 'string'){ const el = document.getElementById(ctxOrId); if(!el) return null; ctx = el.getContext ? el.getContext('2d') : el.querySelector('canvas').getContext('2d'); } else if(ctxOrId && ctxOrId.getContext){ ctx = ctxOrId.getContext('2d'); } else { const el = document.querySelector(ctxOrId); ctx = el && el.getContext ? el.getContext('2d') : null; } if(!ctx) return null; return new Chart(ctx,{type:'bar',data:{labels, datasets:[{label:'',data,backgroundColor:color}]}, options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{grid:{display:false}},y:{beginAtZero:true}}}}); }
-  // create canvas elements inside chart containers
-  function prepareChartCanvas(id){ const c = document.createElement('canvas'); c.style.width='100%'; c.style.height='120px'; document.getElementById(id).appendChild(c); return c; }
-  prepareChartCanvas('utilChart'); prepareChartCanvas('studyChart'); prepareChartCanvas('barDemo'); prepareChartCanvas('hoursDemo');
-  const utilChart = makeBarChart(document.querySelector('#utilChart canvas'), ['M','T','W','T','F'], [40,70,55,80,60], ['#00BFFF']);
-  const studyChart = makeBarChart(document.querySelector('#studyChart canvas'), ['M','T','W','T','F'], [10,12,8,14,9], ['#8A2BE2']);
+    // Highlight current class based on system time
+    function parseTimeRange(t) { if (!t) return null; const [a, b] = t.split('-'); return { start: a, end: b }; }
+    function toMinutes(hm) { const [h, m] = hm.split(':').map(Number); return h * 60 + m; }
+    function highlightCurrent() {
+      const now = new Date(); const minutes = now.getHours() * 60 + now.getMinutes();
+      document.querySelectorAll('.slot').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.slot').forEach(s => {
+        const t = s.dataset.time; if (!t) return; const { start, end } = parseTimeRange(t); if (!start) return; const sMin = toMinutes(start); const eMin = toMinutes(end);
+        if (minutes >= sMin && minutes <= eMin) { s.classList.add('active'); const next = document.getElementById('nextClass'); next.textContent = s.querySelector('.font-semibold').textContent; const countdownEl = document.getElementById('countdown'); const secLeft = (eMin - minutes) * 60; startCountdown(secLeft); }
+      })
+    }
+    function startCountdown(seconds) {
+      clearInterval(window.__cd); function fmt(s) { const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60; return [h, m, sec].map(x => String(x).padStart(2, '0')).join(':') }
+      document.getElementById('countdown').textContent = fmt(seconds);
+      window.__cd = setInterval(() => { seconds--; if (seconds < 0) { clearInterval(window.__cd); highlightCurrent(); } else document.getElementById('countdown').textContent = fmt(seconds); }, 1000);
+    }
+    highlightCurrent(); setInterval(highlightCurrent, 60000);
 
-  // Pie chart for class distribution
-  const pieCanvas = document.createElement('canvas'); document.getElementById('barDemo').appendChild(pieCanvas);
-  const pieCtx = pieCanvas.getContext('2d'); new Chart(pieCtx,{type:'pie',data:{labels:['Calculus','Physics','AI','DB','Other'],datasets:[{data:[4,3,2,2,4],backgroundColor:['#FF00FF','#00BFFF','#8A2BE2','#6A5ACD','#4B0082']}]}, options:{responsive:true,plugins:{legend:{position:'bottom'}}}});
+    // Tabs & flip animation
+    document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => { document.querySelectorAll('.tab').forEach(x => x.classList.remove('active')); t.classList.add('active'); const pane = document.getElementById('flipPane'); if (t.dataset.tab === 'electives') { pane.classList.add('flipped'); } else pane.classList.remove('flipped'); }))
 
-  // Study goal ring (circular progress)
-  const ringCanvas = document.createElement('canvas'); document.getElementById('hoursDemo').appendChild(ringCanvas);
-  const ringCtx = ringCanvas.getContext('2d'); new Chart(ringCtx,{type:'doughnut',data:{labels:['Done','Left'],datasets:[{data:[22,8],backgroundColor:['#00BFFF','#223344']}]}, options:{responsive:true,cutout:'70%'}});
+    // Charts (Chart.js interactive replacements)
+    function makeBarChart(ctxOrId, labels, data, color) { let ctx; if (typeof ctxOrId === 'string') { const el = document.getElementById(ctxOrId); if (!el) return null; ctx = el.getContext ? el.getContext('2d') : el.querySelector('canvas').getContext('2d'); } else if (ctxOrId && ctxOrId.getContext) { ctx = ctxOrId.getContext('2d'); } else { const el = document.querySelector(ctxOrId); ctx = el && el.getContext ? el.getContext('2d') : null; } if (!ctx) return null; return new Chart(ctx, { type: 'bar', data: { labels, datasets: [{ label: '', data, backgroundColor: color }] }, options: { responsive: true, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false } }, y: { beginAtZero: true } } } }); }
+    // create canvas elements inside chart containers
+    function prepareChartCanvas(id) { const c = document.createElement('canvas'); c.style.width = '100%'; c.style.height = '120px'; document.getElementById(id).appendChild(c); return c; }
+    prepareChartCanvas('utilChart'); prepareChartCanvas('studyChart'); prepareChartCanvas('barDemo'); prepareChartCanvas('hoursDemo');
+    const utilChart = makeBarChart(document.querySelector('#utilChart canvas'), ['M', 'T', 'W', 'T', 'F'], [40, 70, 55, 80, 60], ['#00BFFF']);
+    const studyChart = makeBarChart(document.querySelector('#studyChart canvas'), ['M', 'T', 'W', 'T', 'F'], [10, 12, 8, 14, 9], ['#8A2BE2']);
 
-      // Attendance arc update
-      function setAttendance(pct){ const arc = document.getElementById('attendanceArc'); const circumference = 2*Math.PI*10; const dash = (pct/100)*circumference; arc.setAttribute('stroke-dasharray', `${dash} ${circumference-dash}`); document.getElementById('attendancePct').textContent = pct + '%'; }
-      setAttendance(92);
+    // Pie chart for class distribution
+    const pieCanvas = document.createElement('canvas'); document.getElementById('barDemo').appendChild(pieCanvas);
+    const pieCtx = pieCanvas.getContext('2d'); new Chart(pieCtx, { type: 'pie', data: { labels: ['Calculus', 'Physics', 'AI', 'DB', 'Other'], datasets: [{ data: [4, 3, 2, 2, 4], backgroundColor: ['#FF00FF', '#00BFFF', '#8A2BE2', '#6A5ACD', '#4B0082'] }] }, options: { responsive: true, plugins: { legend: { position: 'bottom' } } } });
 
-      // Toast notifications
-      function showToast(msg, t=3000){ const el = document.createElement('div'); el.className='toast glass'; el.innerHTML = `<div style="font-weight:700;margin-bottom:6px">⚡ Schedule update</div><div style="font-size:13px">${msg}</div>`; document.body.appendChild(el); setTimeout(()=> el.style.opacity=0, t-400); setTimeout(()=> el.remove(), t); }
-      // Simulated incoming notification
-      setTimeout(()=> showToast('Your 10 AM Data Structures class moved to Lab L2.'), 1400);
+    // Study goal ring (circular progress)
+    const ringCanvas = document.createElement('canvas'); document.getElementById('hoursDemo').appendChild(ringCanvas);
+    const ringCtx = ringCanvas.getContext('2d'); new Chart(ringCtx, { type: 'doughnut', data: { labels: ['Done', 'Left'], datasets: [{ data: [22, 8], backgroundColor: ['#00BFFF', '#223344'] }] }, options: { responsive: true, cutout: '70%' } });
 
-      // Export buttons (simulate)
-      document.getElementById('exportPdf').addEventListener('click', ()=>{ showToast('Exporting PDF (simulated)...'); });
-      document.getElementById('exportDoc').addEventListener('click', ()=>{ showToast('Exporting DOCX (simulated)...'); });
+    // Attendance arc update
+    function setAttendance(pct) { const arc = document.getElementById('attendanceArc'); const circumference = 2 * Math.PI * 10; const dash = (pct / 100) * circumference; arc.setAttribute('stroke-dasharray', `${dash} ${circumference - dash}`); document.getElementById('attendancePct').textContent = pct + '%'; }
+    setAttendance(92);
 
-      // Particles (optimized: reduce on small devices)
-      (function(){ const c = document.getElementById('particles'); if(!c) return; const ctx = c.getContext('2d'); let w,h, particles=[]; function resize(){ w=c.width=innerWidth; h=c.height=innerHeight }
-        window.addEventListener('resize', resize); resize(); function init(){ particles=[]; const count = (window.devicePixelRatio>1 || navigator.hardwareConcurrency>2) ? 80 : 28; for(let i=0;i<count;i++) particles.push({x:Math.random()*w,y:Math.random()*h,r:Math.random()*1.2+0.3,vx:(Math.random()-0.5)/2,vy:(Math.random()-0.5)/2,color: `rgba(138,43,226,${Math.random()*0.12})`}); }
-        init(); function loop(){ ctx.clearRect(0,0,w,h); for(const p of particles){ p.x+=p.vx; p.y+=p.vy; if(p.x<0) p.x=w; if(p.x>w) p.x=0; if(p.y<0) p.y=h; if(p.y>h) p.y=0; ctx.beginPath(); ctx.fillStyle = p.color; ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill(); } requestAnimationFrame(loop);} loop(); })();
+    // Toast notifications
+    function showToast(msg, t = 3000) { const el = document.createElement('div'); el.className = 'toast glass'; el.innerHTML = `<div style="font-weight:700;margin-bottom:6px">⚡ Schedule update</div><div style="font-size:13px">${msg}</div>`; document.body.appendChild(el); setTimeout(() => el.style.opacity = 0, t - 400); setTimeout(() => el.remove(), t); }
+    // Simulated incoming notification
+    setTimeout(() => showToast('Your 10 AM Data Structures class moved to Lab L2.'), 1400);
 
-  // Spline parallax on mouse move
-  (function(){ const frame = document.querySelector('.hero-3d iframe'); if(!frame) return; const wrap = document.querySelector('.spline-wrap'); wrap.addEventListener('mousemove', (e)=>{ const r = wrap.getBoundingClientRect(); const dx = (e.clientX - (r.left + r.width/2))/r.width; const dy = (e.clientY - (r.top + r.height/2))/r.height; frame.style.transform = `translate(${dx*6}px, ${dy*6}px) rotate(${dx*3}deg)`; }); wrap.addEventListener('mouseleave', ()=> frame.style.transform='none'); })();
+    // Export buttons (simulate)
+    document.getElementById('exportPdf').addEventListener('click', () => { showToast('Exporting PDF (simulated)...'); });
+    document.getElementById('exportDoc').addEventListener('click', () => { showToast('Exporting DOCX (simulated)...'); });
 
-  // Smooth reveal on scroll
-      const reveal = new IntersectionObserver((entries)=>{ entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('fade-in'); e.target.style.opacity=1; e.target.style.transform='none'; } }); },{threshold:0.12});
-      document.querySelectorAll('.panel, .card').forEach(n=>{ n.style.opacity=0; n.style.transform='translateY(12px)'; reveal.observe(n); });
+    // Particles (optimized: reduce on small devices)
+    (function () {
+      const c = document.getElementById('particles'); if (!c) return; const ctx = c.getContext('2d'); let w, h, particles = []; function resize() { w = c.width = innerWidth; h = c.height = innerHeight }
+      window.addEventListener('resize', resize); resize(); function init() { particles = []; const count = (window.devicePixelRatio > 1 || navigator.hardwareConcurrency > 2) ? 80 : 28; for (let i = 0; i < count; i++) particles.push({ x: Math.random() * w, y: Math.random() * h, r: Math.random() * 1.2 + 0.3, vx: (Math.random() - 0.5) / 2, vy: (Math.random() - 0.5) / 2, color: `rgba(138,43,226,${Math.random() * 0.12})` }); }
+      init(); function loop() { ctx.clearRect(0, 0, w, h); for (const p of particles) { p.x += p.vx; p.y += p.vy; if (p.x < 0) p.x = w; if (p.x > w) p.x = 0; if (p.y < 0) p.y = h; if (p.y > h) p.y = 0; ctx.beginPath(); ctx.fillStyle = p.color; ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill(); } requestAnimationFrame(loop); } loop();
+    })();
 
-  // Theme toggle (dark/light)
-  const themeToggle = document.createElement('button'); themeToggle.className='p-2 rounded-md bg-transparent'; themeToggle.setAttribute('aria-label','Toggle theme'); themeToggle.innerHTML='🌓'; document.querySelector('.nav-actions')?.prepend(themeToggle);
-  function setTheme(light){ if(light){ document.body.style.background='#f5f7fb'; document.documentElement.style.setProperty('--magenta','#8A2BE2'); } else { document.body.style.background='var(--darkbg)'; document.documentElement.style.setProperty('--magenta','#FF00FF'); } }
-  themeToggle.addEventListener('click', ()=>{ const isLight = document.documentElement.classList.toggle('light'); setTheme(isLight); });
+    // Spline parallax on mouse move
+    (function () { const frame = document.querySelector('.hero-3d iframe'); if (!frame) return; const wrap = document.querySelector('.spline-wrap'); wrap.addEventListener('mousemove', (e) => { const r = wrap.getBoundingClientRect(); const dx = (e.clientX - (r.left + r.width / 2)) / r.width; const dy = (e.clientY - (r.top + r.height / 2)) / r.height; frame.style.transform = `translate(${dx * 6}px, ${dy * 6}px) rotate(${dx * 3}deg)`; }); wrap.addEventListener('mouseleave', () => frame.style.transform = 'none'); })();
 
-  // Keyboard nav: arrow keys across slots
-  let focusedIndex = 0; const allSlots = ()=>Array.from(document.querySelectorAll('.slot'));
-  document.addEventListener('keydown', (e)=>{ const slots = allSlots(); if(slots.length===0) return; if(['ArrowRight','ArrowLeft','ArrowUp','ArrowDown'].includes(e.key)){ e.preventDefault(); if(!slots[focusedIndex]) focusedIndex=0; if(e.key==='ArrowRight') focusedIndex = Math.min(slots.length-1, focusedIndex+1); if(e.key==='ArrowLeft') focusedIndex = Math.max(0, focusedIndex-1); if(e.key==='ArrowDown') focusedIndex = Math.min(slots.length-1, focusedIndex+5); if(e.key==='ArrowUp') focusedIndex = Math.max(0, focusedIndex-5); slots[focusedIndex].focus(); slots[focusedIndex].scrollIntoView({behavior:'smooth',block:'center'}); }
-  });
+    // Smooth reveal on scroll
+    const reveal = new IntersectionObserver((entries) => { entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('fade-in'); e.target.style.opacity = 1; e.target.style.transform = 'none'; } }); }, { threshold: 0.12 });
+    document.querySelectorAll('.panel, .card').forEach(n => { n.style.opacity = 0; n.style.transform = 'translateY(12px)'; reveal.observe(n); });
 
-  // Search bar in nav
-  const search = document.createElement('input'); search.className='search-input'; search.setAttribute('placeholder','Search classes, faculty...'); search.setAttribute('aria-label','Search timetable'); document.querySelector('nav')?.appendChild(search);
-  search.addEventListener('input', ()=>{ const q = search.value.toLowerCase(); document.querySelectorAll('.slot').forEach(s=>{ const text = s.textContent.toLowerCase(); s.style.opacity = text.includes(q) || q===''?1:0.18; }); });
+    // Theme toggle (dark/light)
+    const themeToggle = document.createElement('button'); themeToggle.className = 'p-2 rounded-md bg-transparent'; themeToggle.setAttribute('aria-label', 'Toggle theme'); themeToggle.innerHTML = '🌓'; document.querySelector('.nav-actions')?.prepend(themeToggle);
+    function setTheme(light) { if (light) { document.body.style.background = '#f5f7fb'; document.documentElement.style.setProperty('--magenta', '#8A2BE2'); } else { document.body.style.background = 'var(--darkbg)'; document.documentElement.style.setProperty('--magenta', '#FF00FF'); } }
+    themeToggle.addEventListener('click', () => { const isLight = document.documentElement.classList.toggle('light'); setTheme(isLight); });
 
-      // Smooth nav scrolling
-      document.querySelectorAll('nav a').forEach(a=> a.addEventListener('click', (e)=>{ e.preventDefault(); const id = a.getAttribute('href').slice(1); const el = document.getElementById(id); if(el) el.scrollIntoView({behavior:'smooth',block:'center'}); }));
-    </script>
-  </body>
+    // Keyboard nav: arrow keys across slots
+    let focusedIndex = 0; const allSlots = () => Array.from(document.querySelectorAll('.slot'));
+    document.addEventListener('keydown', (e) => {
+      const slots = allSlots(); if (slots.length === 0) return; if (['ArrowRight', 'ArrowLeft', 'ArrowUp', 'ArrowDown'].includes(e.key)) { e.preventDefault(); if (!slots[focusedIndex]) focusedIndex = 0; if (e.key === 'ArrowRight') focusedIndex = Math.min(slots.length - 1, focusedIndex + 1); if (e.key === 'ArrowLeft') focusedIndex = Math.max(0, focusedIndex - 1); if (e.key === 'ArrowDown') focusedIndex = Math.min(slots.length - 1, focusedIndex + 5); if (e.key === 'ArrowUp') focusedIndex = Math.max(0, focusedIndex - 5); slots[focusedIndex].focus(); slots[focusedIndex].scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+    });
+
+    // Search bar in nav
+    const search = document.createElement('input'); search.className = 'search-input'; search.setAttribute('placeholder', 'Search classes, faculty...'); search.setAttribute('aria-label', 'Search timetable'); document.querySelector('nav')?.appendChild(search);
+    search.addEventListener('input', () => { const q = search.value.toLowerCase(); document.querySelectorAll('.slot').forEach(s => { const text = s.textContent.toLowerCase(); s.style.opacity = text.includes(q) || q === '' ? 1 : 0.18; }); });
+
+    // Smooth nav scrolling
+    document.querySelectorAll('nav a').forEach(a => a.addEventListener('click', (e) => { e.preventDefault(); const id = a.getAttribute('href').slice(1); const el = document.getElementById(id); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }));
+  </script>
+</body>
+
 </html>
