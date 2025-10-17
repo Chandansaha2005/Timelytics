@@ -1,190 +1,382 @@
 <!doctype html>
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Admin — Timelytics</title>
-    <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;600;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-  </head>
-  <body class="min-h-screen bg-surfaceGray p-6">
-    <div class="max-w-6xl mx-auto">
-      <header class="flex justify-between items-center mb-6">
-        <h1 class="text-3xl font-extrabold text-#202124">Admin Dashboard</h1>
-        <div class="flex gap-2 items-center">
-          <button id="themeToggle" aria-pressed="false" aria-label="Toggle dark mode" onclick="(window.TimelyticsTheme||window.TimelyticsTheme)?.toggleTheme()" class="p-2 rounded-2xl bg-white/60 hover:bg-white/80 transition relative mr-2">
-            <span class="icon-sun" style="display:none;">☀️</span>
-            <span class="icon-moon">🌙</span>
-          </button>
-          <button id="genBtn" onclick="generate()" class="px-4 py-2 bg-[#1A73E8] text-white rounded shadow hover:shadow-lg transition">Generate Timetable</button>
-        </div>
-      </header>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Admin — Timelytics</title>
 
-      <section class="grid grid-cols-4 gap-4 mb-6">
-        <div class="p-4 rounded-xl bg-white/70 backdrop-blur-md shadow">
-          <div class="text-sm text-gray-600">Total Teachers</div>
-          <div id="totalTeachers" class="text-2xl font-semibold">-</div>
-        </div>
-        <div class="p-4 rounded-xl bg-white/70 backdrop-blur-md shadow">
-          <div class="text-sm text-gray-600">Rooms</div>
-          <div id="rooms" class="text-2xl font-semibold">-</div>
-        </div>
-        <div class="p-4 rounded-xl bg-white/70 backdrop-blur-md shadow">
-          <div class="text-sm text-gray-600">Courses</div>
-          <div id="courses" class="text-2xl font-semibold">-</div>
-        </div>
-        <div class="p-4 rounded-xl bg-white/70 backdrop-blur-md shadow">
-          <div class="text-sm text-gray-600">Scheduled</div>
-          <div id="scheduled" class="text-2xl font-semibold">-</div>
-        </div>
-      </section>
+  <!-- Google font -->
+  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;600;800&display=swap" rel="stylesheet">
 
-      <section id="results" class="bg-white/80 p-4 rounded shadow">
-        <h2 class="font-semibold">Activity</h2>
-        <div id="out" class="mt-2 text-sm text-gray-700"></div>
-      </section>
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
 
-      <section class="mt-6 bg-white/80 p-4 rounded shadow">
-        <div class="flex justify-between items-center">
-          <h2 class="font-semibold">Timetable Preview</h2>
-          <div class="flex gap-2">
-            <button onclick="loadTimetable()" class="px-3 py-1 bg-[#1A73E8] text-white rounded text-sm">Refresh</button>
-            <button onclick="renderGrid()" class="px-3 py-1 bg-gray-200 rounded text-sm">Open Editor</button>
+  <style>
+    /* Theme variables */
+    :root{
+      --magenta: #FF00FF;
+      --violet:  #8B00FF;
+      --neon:    #00BFFF;
+      --glass-bg: rgba(11,8,20,0.48);
+      --glass-border: rgba(255,255,255,0.04);
+      --muted: rgba(230,238,243,0.72);
+      --accent-glow: 0 8px 30px rgba(138,0,255,0.12), 0 2px 8px rgba(0,191,255,0.06);
+    }
+
+    html,body{height:100%;font-family:'Unbounded',system-ui,-apple-system,'Segoe UI',Roboto,Arial;}
+
+/* ---------- Animated floating gradient background (soft waves) ---------- */
+    .bg-animated {
+      position: fixed;
+      inset: 0;
+      z-index: -50;
+      overflow: hidden;
+      background: radial-gradient(ellipse at 10% 10%, rgba(139,0,255,0.08), transparent 14%),
+                  radial-gradient(ellipse at 90% 90%, rgba(0,191,255,0.06), transparent 12%),
+                  linear-gradient(180deg, rgba(3,1,12,0.92), rgba(7,3,20,0.95));
+    }
+    /* moving gradient layers */
+    .bg-animated::before,
+    .bg-animated::after{
+      content:"";
+      position:absolute;left:-20%;top:-30%;
+      width:140%;height:140%;filter:blur(80px);opacity:0.9;
+      transform: rotate(0deg);
+      background: linear-gradient(120deg, rgba(255,0,255,0.10), rgba(138,0,255,0.10) 45%, rgba(0,191,255,0.08) 100%);
+      animation: floaty 18s linear infinite;
+      mix-blend-mode: screen;
+    }
+    .bg-animated::after{
+      top:auto;bottom:-30%;left:auto;right:-20%;
+      animation-duration: 22s; animation-direction: reverse;
+    }
+    @keyframes floaty{
+      0%{ transform: translateY(0) rotate(0deg) scale(1); }
+      50%{ transform: translateY(-6%) rotate(6deg) scale(1.05); }
+      100%{ transform: translateY(0) rotate(0deg) scale(1); }
+    }
+
+/* ---------- Frosted glass / card styles ---------- */
+    .glass-card{
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.015));
+      border: 1px solid var(--glass-border);
+      backdrop-filter: blur(10px) saturate(120%);
+      -webkit-backdrop-filter: blur(10px) saturate(120%);
+      border-radius: 14px;
+      transition: transform .28s cubic-bezier(.2,.9,.2,1), box-shadow .28s ease, filter .28s ease;
+      will-change: transform;
+      position: relative;
+      overflow: hidden;
+    }
+    .glass-card::before{
+      /* neon gradient edge */
+      content:"";
+      position:absolute;inset:-2px;
+      background: linear-gradient(90deg, var(--neon), var(--violet), var(--magenta));
+      mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      mask-composite: exclude;
+      padding:2px;
+      opacity:.18;
+      pointer-events:none;
+      border-radius:16px;
+      filter: blur(14px);
+    }
+    .glass-card .inner {
+      position:relative; z-index: 2; padding: 1.25rem;
+    }
+    .glass-card:hover{
+      transform: translateY(-6px) scale(1.02);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.45), 0 6px 30px rgba(138,0,255,0.06);
+      filter: saturate(120%);
+    }
+
+/* small neon accent for icons/titles */
+    .accent-line {
+      height:4px; width:56px; border-radius:6px;
+      background: linear-gradient(90deg,var(--neon),var(--violet),var(--magenta));
+      box-shadow: var(--accent-glow);
+      margin-bottom: 0.75rem;
+    }
+
+/* ---------- Navbar (sticky, glass sausage) ---------- */
+    header.topbar{
+      position:sticky; top:12px; z-index:60; display:flex; justify-content:center;
+      pointer-events:none;
+      padding:0 1rem;
+    }
+    header.topbar .sausage {
+      pointer-events:auto;
+      width: min(1100px, calc(100% - 2rem));
+      display:flex; align-items:center; justify-content:space-between;
+      gap:1rem; padding:.5rem .85rem;
+      border-radius:9999px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border: 1px solid rgba(255,255,255,0.04);
+      box-shadow: 0 8px 30px rgba(2,6,23,0.42);
+      backdrop-filter: blur(10px);
+    }
+    .brand {
+      display:flex; align-items:center; gap:.75rem;
+      font-weight:800; font-size:1.05rem;
+      background: linear-gradient(90deg, var(--neon), var(--violet), var(--magenta));
+      -webkit-background-clip: text; background-clip: text; color:transparent;
+      text-decoration:none;
+    }
+    .navlinks { display:flex; gap:1rem; align-items:center; justify-content:center; position:relative; }
+    .navlinks a {
+      color: rgba(255,255,255,0.92); text-decoration:none; font-weight:600; padding:.45rem .5rem;
+      position:relative; transition: color .15s ease, transform .15s ease;
+    }
+    /* hover underline animation */
+    .navlinks a::after{
+      content:""; position:absolute; left:50%; transform:translateX(-50%) scaleX(0);
+      bottom:.25rem; height:2px; width:60%; border-radius:2px;
+      background: linear-gradient(90deg,var(--neon),var(--violet),var(--magenta));
+      transition: transform .2s cubic-bezier(.2,.9,.2,1), opacity .2s;
+      opacity:0.95;
+    }
+    .navlinks a:hover{ transform: translateY(-2px); color: #ffffff; }
+    .navlinks a:hover::after{ transform: translateX(-50%) scaleX(1); }
+
+    /* logout special red pulse */
+    .btn-logout{
+      background: linear-gradient(90deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+      border:1px solid rgba(255,255,255,0.04);
+      color: #fff; padding:.45rem .75rem; border-radius:10px; font-weight:700;
+      transition: box-shadow .18s ease, transform .12s ease;
+    }
+    .btn-logout:hover{
+      box-shadow: 0 6px 30px rgba(255,40,60,0.14), 0 2px 8px rgba(255,40,60,0.06);
+      transform: translateY(-3px);
+    }
+
+/* small responsive adjustments */
+    @media (max-width: 768px){
+      .navlinks{ display:none; } /* collapse nav links on small — keep brand + menu later if needed */
+      header.topbar{ top:8px; }
+    }
+
+/* ---------- Hero ---------- */
+    .hero{
+      display:flex; gap:1.25rem; align-items:center; justify-content:space-between;
+      padding: 3.25rem 1rem 2rem; max-width:1100px; margin: 0 auto;
+    }
+    .hero .greeting{ color: #fff; }
+    .hero h1{ font-size: clamp(1.6rem, 3.8vw, 2.6rem); line-height:1.02; font-weight:800; margin:0; }
+    .hero p{ color: var(--muted); margin-top:.6rem; max-width:60ch; }
+
+/* floating stats pill */
+    .stats-pill{
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border:1px solid rgba(255,255,255,0.03);
+      padding:.6rem .85rem; border-radius:12px; display:flex; gap:.85rem; align-items:center;
+      box-shadow: 0 10px 30px rgba(2,6,23,0.35);
+      backdrop-filter: blur(8px);
+    }
+
+/* ---------- Cards grid ---------- */
+    .cards {
+      max-width:1100px; margin: 2rem auto; padding: 0 1rem 4rem;
+      display:grid; gap:1.25rem;
+      grid-template-columns: repeat(1, minmax(0,1fr));
+    }
+    @media(min-width:768px){ .cards{ grid-template-columns: repeat(2, minmax(0,1fr)); } }
+    @media(min-width:1100px){ .cards{ grid-template-columns: repeat(4, minmax(0,1fr)); } }
+
+    .card-icon{
+      width:48px;height:48px;display:inline-grid;place-items:center;border-radius:10px;
+      background: linear-gradient(90deg, rgba(0,191,255,0.12), rgba(138,0,255,0.12));
+      color: #fff; font-weight:700;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.45);
+    }
+
+/* ---------- simple appear-on-scroll animation ---------- */
+    .reveal{ opacity:0; transform: translateY(12px) scale(.995); transition: all .6s cubic-bezier(.2,.9,.2,1); }
+    .reveal.visible{ opacity:1; transform: translateY(0) scale(1); }
+
+/* ---------- Footer ---------- */
+    footer.footer {
+      margin-top: 3rem; padding: 2.5rem 1rem; color: var(--muted);
+      border-top: 1px solid rgba(255,255,255,0.02);
+      background: linear-gradient(180deg, rgba(3,1,12,0.94), rgba(7,3,20,0.98));
+    }
+    .footer-line{ height:2px; background: linear-gradient(90deg,var(--neon),var(--violet),var(--magenta)); width:100%; border-radius:3px; margin-bottom:1rem; opacity:.95; }
+
+  </style>
+</head>
+<body class="antialiased text-white">
+
+  <!-- Animated background -->
+  <div class="bg-animated" aria-hidden="true"></div>
+
+  <!-- Top sausage navbar (sticky) -->
+  <header class="topbar">
+    <div class="sausage">
+      <!-- Left: brand -->
+      <a href="#" class="brand" aria-label="Timelytics admin">Timelytics</a>
+
+      <!-- Center / right nav -->
+      <nav class="navlinks" aria-label="Main navigation">
+        <a href="#" title="Dashboard">Dashboard</a>
+        <a href="#" title="Faculty">Faculty</a>
+        <a href="#" title="Classrooms">Classrooms</a>
+        <a href="#" title="Subjects">Subjects</a>
+        <a href="#" title="Timetables">Timetables</a>
+      </nav>
+
+      <div class="flex items-center gap-3">
+        <button id="themeToggle" aria-pressed="false" class="p-2 rounded-full glass-card" title="Toggle theme (demo)">🌗</button>
+        <button class="btn-logout" id="logoutBtn">Logout</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <main>
+    <section class="hero">
+      <div class="greeting">
+        <div class="accent-line"></div>
+        <h1>Welcome, Admin 👋</h1>
+        <p>Manage your institution’s timetable, faculty, and classrooms all in one place. Generate conflict-free schedules with explainable decisions.</p>
+        <div class="mt-4 flex gap-3">
+          <button class="glass-card text-sm px-4 py-2">Create New Timetable</button>
+          <button class="glass-card text-sm px-4 py-2">Import / Export</button>
+        </div>
+      </div>
+
+      <div class="stats-pill reveal" style="min-width:210px;">
+        <div class="text-xs text-gray-300">Sessions queued</div>
+        <div class="text-lg font-extrabold">3</div>
+        <div class="ml-auto text-xs text-gray-400">Last run: 12:42</div>
+      </div>
+    </section>
+
+    <!-- Dashboard cards -->
+    <section class="cards">
+      <!-- Faculty Management -->
+      <article class="glass-card reveal" data-tilt>
+        <div class="inner">
+          <div class="flex items-start gap-3">
+            <div class="card-icon">👩‍🏫</div>
+            <div>
+              <h3 class="text-lg font-bold">Faculty Management</h3>
+              <p class="mt-1 text-sm" style="color:var(--muted)">Add, view, and manage faculty schedules.</p>
+            </div>
           </div>
         </div>
-        <div id="timetablePreview" class="mt-4"></div>
-        <div id="timetableGrid" class="mt-4 hidden"></div>
-      </section>
+      </article>
+
+      <!-- Classroom Allocation -->
+      <article class="glass-card reveal" data-tilt>
+        <div class="inner">
+          <div class="flex items-start gap-3">
+            <div class="card-icon">🏫</div>
+            <div>
+              <h3 class="text-lg font-bold">Classroom Allocation</h3>
+              <p class="mt-1 text-sm" style="color:var(--muted)">Assign classes smartly to avoid overlaps.</p>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- Subject Setup -->
+      <article class="glass-card reveal" data-tilt>
+        <div class="inner">
+          <div class="flex items-start gap-3">
+            <div class="card-icon">📚</div>
+            <div>
+              <h3 class="text-lg font-bold">Subject Setup</h3>
+              <p class="mt-1 text-sm" style="color:var(--muted)">Define subjects and their assigned teachers.</p>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- Smart Timetable -->
+      <article class="glass-card reveal" data-tilt>
+        <div class="inner">
+          <div class="flex items-start gap-3">
+            <div class="card-icon">🕒</div>
+            <div>
+              <h3 class="text-lg font-bold">Smart Timetable</h3>
+              <p class="mt-1 text-sm" style="color:var(--muted)">Generate conflict-free, optimized schedules.</p>
+            </div>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <!-- Optional additional content area (placeholder for widgets/tables) -->
+    <section class="max-w-6xl mx-auto px-4 pb-12">
+      <div class="glass-card p-4 reveal" style="min-height:120px;">
+        <div class="inner">
+          <h4 class="font-semibold">Activity</h4>
+          <div class="mt-2 text-sm text-gray-300" id="activityLog">No recent activity.</div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="max-w-6xl mx-auto px-4">
+      <div class="footer-line"></div>
+      <div class="py-4 flex flex-col md:flex-row items-center justify-between gap-3">
+        <div>
+          <div class="brand">Timelytics</div>
+          <div style="color:var(--muted); font-size:13px">© 2025 Timelytics | Smart Scheduler for Smarter Institutions.</div>
+        </div>
+        <div style="color:var(--muted); font-size:13px">Built with care • Privacy • Terms</div>
+      </div>
     </div>
-  <script src="/frontend/assets/theme.js"></script>
+  </footer>
+
+  <!-- Scripts: reveal on scroll, simple 3D tilt for cards, small demo interactions -->
   <script>
-      async function loadDashboard(){
-        try{
-          const res = await fetch('/api/admin/dashboard');
-          const d = await res.json();
-          document.getElementById('totalTeachers').innerText = d.totalTeachers;
-          document.getElementById('rooms').innerText = d.rooms;
-          document.getElementById('courses').innerText = d.courses;
-          document.getElementById('scheduled').innerText = d.scheduledSessions;
-        }catch(e){ console.error(e); }
-      }
+    // Intersection Observer to reveal elements on scroll
+    (function(){
+      const obs = new IntersectionObserver((entries)=>{
+        entries.forEach(ent=>{
+          if(ent.isIntersecting) ent.target.classList.add('visible');
+        });
+      }, { threshold: 0.12 });
 
-      async function generate(){
-        const btn = document.getElementById('genBtn');
-        btn.disabled = true; btn.innerText = 'Queued...';
-        try{
-          const res = await fetch('/api/schedule/generate', { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify({ options:{} }) });
-          const data = await res.json();
-          document.getElementById('out').innerText = 'Queued job ' + data.taskId;
-        }catch(e){ document.getElementById('out').innerText = 'Error'; }
-        btn.disabled = false; btn.innerText = 'Generate Timetable';
-      }
+      document.querySelectorAll('.reveal').forEach(el=> obs.observe(el));
+    })();
 
-      async function loadTimetable(){
-        try{
-          const res = await fetch('/api/schedule');
-          const list = await res.json();
-          const container = document.getElementById('timetablePreview');
-          if(!list || list.length===0){ container.innerHTML = '<div class="text-sm text-gray-500">No scheduled sessions yet</div>'; return; }
-          // build a small table
-          const rows = list.slice(0,12).map(r => `<div class="p-2 border-b"><strong>${r.day} ${r.timeSlot}</strong> — ${r.subject.name || r.subject} in ${r.room.name || r.room} (${r.explain?.reason||''})</div>`).join('');
-          container.innerHTML = `<div class="divide-y">${rows}</div>`;
-        }catch(e){ console.error(e); }
-      }
+    // Simple tilt effect for elements with data-tilt
+    (function(){
+      const tiltEls = document.querySelectorAll('[data-tilt]');
+      tiltEls.forEach(el=>{
+        el.addEventListener('pointermove', (e)=>{
+          const r = el.getBoundingClientRect();
+          const px = (e.clientX - r.left) / r.width;
+          const py = (e.clientY - r.top) / r.height;
+          const rotY = (px - 0.5) * 8; // rotate around Y
+          const rotX = (0.5 - py) * 6; // rotate around X
+          el.style.transform = `perspective(900px) rotateX(${rotX}deg) rotateY(${rotY}deg) translateZ(8px)`;
+        });
+        el.addEventListener('pointerleave', ()=> el.style.transform = '');
+      });
+    })();
 
-      // SSE notifications
-      function connectEvents(){
-        try{
-          const s = new EventSource('/api/events');
-          s.onmessage = (ev) => {
-            try{
-              const data = JSON.parse(ev.data);
-              if(data.type === 'notification' || data.payload){
-                const payload = data.payload || data;
-                const out = document.getElementById('out');
-                const time = new Date(payload.createdAt || Date.now()).toLocaleTimeString();
-                out.innerHTML = `<div class="p-2 border-b"><strong>${payload.title || 'Notification'}</strong> <span class="text-xs text-gray-500">${time}</span><div class="text-sm">${payload.body||''}</div></div>` + out.innerHTML;
-              }
-            }catch(e){ console.error('evt parse', e); }
-          };
-        }catch(e){ console.warn('SSE failed', e); }
-      }
+    // Demo: small activity updates (placeholder)
+    (function(){
+      const log = document.getElementById('activityLog');
+      setTimeout(()=>{ log.innerHTML = '<div class="text-sm">Timetable generation completed — 8 new sessions scheduled.</div>'; }, 1400);
+    })();
 
-      window.addEventListener('load', () => { loadDashboard(); loadTimetable(); connectEvents(); });
+    // Logout button simple pulse animation on hover handled in CSS; attach click
+    document.getElementById('logoutBtn').addEventListener('click', ()=> { alert('Logging out (demo)'); });
 
-      // --- Drag & Drop Timetable Editor ---
-      const DAYS = ['Mon','Tue','Wed','Thu','Fri'];
-      const TIMES = ['8','9','10','11','12','13','14','15','16'];
-      let currentTimetable = [];
+    // Theme toggle demo (switches subtle inversion)
+    document.getElementById('themeToggle').addEventListener('click', function(){
+      const pressed = this.getAttribute('aria-pressed') === 'true';
+      this.setAttribute('aria-pressed', String(!pressed));
+      document.body.classList.toggle('invert');
+    });
+  </script>
 
-      function renderGrid(){
-        const grid = document.getElementById('timetableGrid');
-        grid.classList.remove('hidden');
-        grid.innerHTML = '';
-        const table = document.createElement('div');
-        table.className = 'grid gap-1';
-        // header
-        const header = document.createElement('div'); header.className = 'grid grid-cols-' + (DAYS.length+1) + ' gap-1 mb-2';
-        header.innerHTML = `<div></div>` + DAYS.map(d => `<div class="p-2 bg-gray-100 rounded text-center font-medium">${d}</div>`).join('');
-        grid.appendChild(header);
-
-        for(const t of TIMES){
-          const row = document.createElement('div');
-          row.className = 'grid grid-cols-' + (DAYS.length+1) + ' gap-1 items-stretch';
-          const timeCell = document.createElement('div'); timeCell.className = 'p-2 bg-gray-50 rounded'; timeCell.innerText = t + ':00';
-          row.appendChild(timeCell);
-          for(const d of DAYS){
-            const cell = document.createElement('div');
-            cell.className = 'p-2 bg-white border rounded min-h-[56px]';
-            cell.dataset.day = d; cell.dataset.time = t;
-            cell.ondragover = (ev)=> ev.preventDefault();
-            cell.ondrop = async (ev)=>{
-              ev.preventDefault();
-              const id = ev.dataTransfer.getData('text/plain');
-              if(!id) return;
-              // call override API
-              const body = { id, day: d, timeSlot: t };
-              const token = localStorage.getItem('token');
-              const res = await fetch('/api/schedule/override', { method: 'POST', headers: { 'Content-Type':'application/json', Authorization: token?('Bearer '+token):'' }, body: JSON.stringify(body) });
-              const data = await res.json();
-              if(res.ok){
-                loadTimetable(); renderGrid();
-                alert('Moved');
-              }else{
-                alert('Conflict: ' + (data.error||'unknown'));
-              }
-            };
-            row.appendChild(cell);
-          }
-          grid.appendChild(row);
-        }
-
-        // place items
-        for(const item of currentTimetable){
-          const selector = `[data-day="${item.day}"][data-time="${item.timeSlot}"]`;
-          const cell = grid.querySelector(selector);
-          if(cell){
-            const el = document.createElement('div');
-            el.className = 'p-2 bg-[#1A73E8] text-white rounded cursor-move';
-            el.draggable = true; el.dataset.id = item._id;
-            el.innerText = `${item.subject.name || item.subject} @ ${item.room.name || item.room}`;
-            el.ondragstart = (ev)=> { ev.dataTransfer.setData('text/plain', item._id); };
-            cell.appendChild(el);
-          }
-        }
-      }
-
-      async function loadTimetable(){
-        try{
-          const res = await fetch('/api/schedule');
-          const list = await res.json();
-          currentTimetable = list.map(x => ({ _id: x._id, day: x.day, timeSlot: x.timeSlot, subject: x.subject, room: x.room, explain: x.explain }));
-          const container = document.getElementById('timetablePreview');
-          if(!list || list.length===0){ container.innerHTML = '<div class="text-sm text-gray-500">No scheduled sessions yet</div>'; return; }
-          const rows = list.slice(0,12).map(r => `<div class="p-2 border-b"><strong>${r.day} ${r.timeSlot}</strong> — ${r.subject.name || r.subject} in ${r.room.name || r.room} <div class="text-xs text-gray-500">${r.explain?.reason||''}</div></div>`).join('');
-          container.innerHTML = `<div class="divide-y">${rows}</div>`;
-        }catch(e){ console.error(e); }
-      }
-    </script>
-  </body>
+</body>
 </html>
