@@ -209,7 +209,22 @@
                 class="neon-input w-full rounded-lg px-4 py-3 text-sm border border-transparent focus:ring-0">
             </div>
 
-            <div class="flex items-center justify-between">
+            <!-- Admin login toggle -->
+            <div id="adminRow" class="mt-3" style="display:none">
+              <label for="adminPin" class="block text-xs text-gray-300 mb-2">Admin PIN</label>
+              <input id="adminPin" name="adminPin" type="password" inputmode="numeric" pattern="\d{4}" placeholder="Enter 4-digit PIN"
+                class="neon-input w-full rounded-lg px-4 py-3 text-sm border border-transparent focus:ring-0" maxlength="4" />
+            </div>
+
+            <div class="flex items-center gap-3 mt-3">
+              <label class="neon-check flex items-center gap-3 text-sm text-gray-300">
+                <input type="checkbox" id="adminCheckbox" name="adminCheckbox">
+                <span class="box"></span>
+                <span class="ml-2">Admin Login</span>
+              </label>
+            </div>
+
+            <div class="flex items-center justify-between mt-2">
               <label class="neon-check flex items-center gap-3 text-sm text-gray-300">
                 <input type="checkbox" id="remember" name="remember">
                 <span class="box"></span>
@@ -369,14 +384,109 @@
 
     // Particles (lightweight)
     (function () {
-      const canvas = document.getElementById('particles'); if (!canvas) return; const ctx = canvas.getContext('2d'); let w, h, particles = [];
-      function resize() { w = canvas.width = innerWidth; h = canvas.height = innerHeight }
+      const canvas = document.getElementById('particles'); if (!canvas) return; const ctx = canvas.getContext('2d'); let w=0, h=0, particles = [];
+      function resize() { w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight }
       window.addEventListener('resize', resize); resize();
-      function init() { particles = []; const count = Math.floor((w * h) / 90000); for (let i = 0; i < count; i++) particles.push({ x: Math.random() * w, y: Math.random() * h, r: Math.random() * 1.6 + 0.4, vx: (Math.random() - 0.5) / 2, vy: (Math.random() - 0.5) / 2 }); }
+      function init() { particles = []; const count = Math.max(8, Math.floor((w * h) / 90000)); for (let i = 0; i < count; i++) particles.push({ x: Math.random() * w, y: Math.random() * h, r: Math.random() * 1.6 + 0.4, vx: (Math.random() - 0.5) / 2, vy: (Math.random() - 0.5) / 2 }); }
       init();
-      function step() { ctx.clearRect(0, 0, w, h); for (const p of particles) { p.x += p.vx; p.y += p.vy; if (p.x < 0) p.x = w; if (p.x > w) p.x = 0; if (p.y < 0) p.y = h; if (p.y > h) p.y = 0; const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r * 10); g.addColorStop(0, 'rgba(106,90,205,0.12)'); g.addColorStop(1, 'rgba(75,0,130,0)'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill(); } requestAnimationFrame(step); }
+      function step() {
+        ctx.clearRect(0, 0, w, h);
+        for (const p of particles) {
+          p.x += p.vx; p.y += p.vy;
+          if (p.x < -10) p.x = w+10; if (p.x > w+10) p.x = -10; if (p.y < -10) p.y = h+10; if (p.y > h+10) p.y = -10;
+          const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r * 10);
+          g.addColorStop(0, 'rgba(106,90,205,0.12)'); g.addColorStop(1, 'rgba(75,0,130,0)');
+          ctx.fillStyle = g; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
+        }
+        requestAnimationFrame(step);
+      }
       step();
     })();
+
+    // Admin checkbox -> show PIN field
+    const adminCheckbox = document.getElementById('adminCheckbox');
+    const adminRow = document.getElementById('adminRow');
+    const adminPinInput = document.getElementById('adminPin');
+    const SECRET_PIN = '2025';
+    let pinAttempts = 0;
+    const PIN_MAX_ATTEMPTS = 5;
+
+    if(adminCheckbox){
+      adminCheckbox.addEventListener('change', ()=>{
+        adminRow.style.display = adminCheckbox.checked ? 'block' : 'none';
+        if(!adminCheckbox.checked) adminPinInput.value='';
+      });
+    }
+
+    // Local storage user store (demo only)
+    function readUsers(){ try{ return JSON.parse(localStorage.getItem('demoUsers')||'[]'); }catch(e){ return []; } }
+    function writeUsers(u){ localStorage.setItem('demoUsers', JSON.stringify(u)); }
+
+    // simple loading state
+    function setLoading(btn, on=true){ if(!btn) return; btn.disabled = on; btn.style.opacity = on ? 0.7 : 1; btn.textContent = on ? (btn.id==='loginBtn'?'Signing in...':'Creating...') : (btn.id==='loginBtn'?'Sign in':'Sign Up'); }
+
+    // Handlers (local demo auth)
+    function handleLogin() {
+      const email = document.getElementById('email').value.trim();
+      const pwd = document.getElementById('password').value;
+      const isAdmin = document.getElementById('adminCheckbox').checked;
+      const pin = document.getElementById('adminPin').value.trim();
+      if (!email || (!pwd && !isAdmin)) { flash('Please fill required fields'); return; }
+
+      // admin flow
+      if(isAdmin){
+        if(pinAttempts >= PIN_MAX_ATTEMPTS){ flash('Too many PIN attempts — try again later'); return; }
+        if(pin !== SECRET_PIN){ pinAttempts++; flash('Invalid PIN'); return; }
+        // success: redirect to admin dashboard
+        flash('Admin sign-in successful', 800);
+        setTimeout(()=> location.href = 'admin-dashboard.html', 700);
+        return;
+      }
+
+      // regular user flow: check local storage users
+      setLoading(loginBtn, true);
+      setTimeout(()=>{
+        const users = readUsers();
+        const user = users.find(u=>u.email.toLowerCase()===email.toLowerCase() && u.password===pwd);
+        setLoading(loginBtn, false);
+        if(!user){ flash('Invalid credentials'); return; }
+        flash('Signed in — redirecting...', 700);
+  // redirect by role to existing frontend pages
+  if(user.role === 'student') location.href = 'student.html';
+  else if(user.role === 'faculty') location.href = 'faculty.html';
+  else location.href = 'admin.html';
+      }, 700);
+    }
+
+    function handleSignup() {
+      const name = document.getElementById('sname').value.trim();
+      const email = document.getElementById('semail').value.trim();
+      const pw = document.getElementById('spassword').value;
+      const conf = document.getElementById('sconfirm').value;
+      const role = document.getElementById('srole').value;
+      const terms = document.getElementById('sterms').checked;
+      if (!name || !email || !pw || !conf) { flash('Please fill all fields'); return; }
+      if (pw !== conf) { flash('Passwords do not match'); return; }
+      if (!terms) { flash('Please accept Terms & Conditions'); return; }
+      setLoading(signupBtn, true);
+      setTimeout(()=>{
+        const users = readUsers();
+        if(users.find(u=>u.email.toLowerCase()===email.toLowerCase())){ setLoading(signupBtn,false); flash('Account already exists'); return; }
+          users.push({ name, email, password: pw, role }); writeUsers(users); setLoading(signupBtn,false);
+          flash('Account created — redirecting...', 900);
+          card.classList.remove('flipped');
+          // redirect after short delay depending on role (use existing pages)
+          setTimeout(()=>{
+            if(role === 'student') location.href = 'student.html';
+            else if(role === 'faculty') location.href = 'faculty.html';
+            else location.href = 'admin.html';
+          }, 800);
+      }, 800);
+    }
+
+    // expose handlers globally (existing inline forms call them)
+    window.handleLogin = handleLogin;
+    window.handleSignup = handleSignup;
   </script>
 </body>
 

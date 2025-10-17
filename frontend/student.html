@@ -788,11 +788,11 @@
 
         // Build rows from timetableJSON
         const rows = [];
-        const days = timetableJSON.week || ['Mon','Tue','Wed','Thu','Fri'];
+        const days = timetableJSON.week || ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
         const periods = timetableJSON.periods || [];
         const slots = timetableJSON.slots || [];
         for (let d = 0; d < days.length; d++) {
-          for (let p = 0; p < (periods.length || (slots[d]||[]).length); p++) {
+          for (let p = 0; p < (periods.length || (slots[d] || []).length); p++) {
             const slot = (slots[d] && slots[d][p]) || { sub: '---', fac: '', room: '', time: periods[p] || '' };
             rows.push([days[d], slot.time || periods[p] || '', slot.sub || '', slot.fac || '', slot.room || '']);
           }
@@ -806,8 +806,8 @@
           if (y + rowHeight > pageH - margin) {
             pdf.addPage();
             // white background for new page
-            pdf.setFillColor(255,255,255);
-            pdf.rect(0,0,pageW,pageH,'F');
+            pdf.setFillColor(255, 255, 255);
+            pdf.rect(0, 0, pageW, pageH, 'F');
             y = margin;
           }
 
@@ -831,7 +831,7 @@
         }
 
         // Save PDF
-        pdf.save(`Timelytics_Timetable_${new Date().toISOString().slice(0,10)}.pdf`);
+        pdf.save(`Timelytics_Timetable_${new Date().toISOString().slice(0, 10)}.pdf`);
         showToast('PDF downloaded (table format)');
       } catch (err) {
         console.error(err);
@@ -840,7 +840,7 @@
         btn.disabled = false;
       }
     });
-    
+
     document.getElementById('exportDoc').addEventListener('click', () => { showToast('Exporting DOCX (simulated)...'); });
 
     // Particles (optimized: reduce on small devices)
