@@ -2,6 +2,7 @@ const express = require('express');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { User } = require('../models');
+const rateLimit = require('express-rate-limit');
 
 const router = express.Router();
 
@@ -19,7 +20,10 @@ router.post('/register', async (req, res) => {
   }
 });
 
-router.post('/login', async (req, res) => {
+// basic rate limiter to protect login endpoint
+const loginLimiter = rateLimit({ windowMs: 15*60*1000, max: 20, message: { error: 'Too many login attempts, try later' } });
+
+router.post('/login', loginLimiter, async (req, res) => {
   const { email, password } = req.body;
   const user = await User.findOne({ email });
   if(!user) return res.status(401).json({ error: 'Invalid' });
@@ -27,6 +31,14 @@ router.post('/login', async (req, res) => {
   if(!ok) return res.status(401).json({ error: 'Invalid' });
   const token = jwt.sign({ sub: user._id, role: user.role }, JWT_SECRET, { expiresIn: '8h' });
   res.json({ token });
+});
+
+// Admin PIN protected demo endpoint (server-side validation)
+router.post('/admin-action', async (req, res) => {
+  const { pin } = req.body;
+  if(!process.env.ADMIN_PIN) return res.status(500).json({ error: 'Admin PIN not configured' });
+  if(pin !== process.env.ADMIN_PIN) return res.status(403).json({ error: 'Invalid admin PIN' });
+  return res.json({ message: 'Admin action allowed' });
 });
 
 // Get current user
