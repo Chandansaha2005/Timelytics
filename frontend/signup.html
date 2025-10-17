@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Timelytics — Sign Up</title>
+    <!-- Google Font: Unbounded -->
+    <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <!-- Tailwind CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      :root{
+        --bg:#0a0a0a;
+        --card-bg: rgba(20,20,30,0.6);
+        --input-bg:#0f1114;
+        --magenta:#ff00ff;
+        --blue:#6a5acd;
+        --violet:#4b0082;
+      }
+      html,body{height:100%;}
+      body{
+        font-family: 'Unbounded', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+        background: radial-gradient(900px 500px at 10% 20%, rgba(75,0,130,0.06), transparent), radial-gradient(900px 500px at 90% 80%, rgba(106,90,205,0.06), transparent), var(--bg);
+        color: #e6eef8;
+      }
+
+      .neon-gradient { background: linear-gradient(90deg, var(--magenta), var(--blue), var(--violet)); -webkit-background-clip:text; background-clip:text; color:transparent }
+
+      .glow-border { position:relative }
+      .glow-border:before{ content:''; position:absolute; inset:0; z-index:-1; border-radius:1rem; padding:2px; background: linear-gradient(90deg, rgba(255,0,255,0.18), rgba(106,90,205,0.14), rgba(75,0,130,0.16)); -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; filter: blur(10px) saturate(120%); pointer-events:none }
+
+      .neon-input:focus{ outline:none; box-shadow:0 0 18px rgba(255,0,255,0.12), 0 0 30px rgba(106,90,205,0.08); }
+      .neon-check input[type="checkbox"]{display:none}
+      .neon-check .box{ width:18px;height:18px;border-radius:6px;background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(0,0,0,0.15));border:1px solid rgba(255,255,255,0.06);display:inline-block;vertical-align:middle;position:relative;transition:all .18s ease }
+      .neon-check input[type="checkbox"]:checked + .box{ box-shadow: 0 0 12px rgba(255,0,255,0.25), 0 0 24px rgba(106,90,205,0.12); background: linear-gradient(90deg,var(--magenta),var(--blue)) }
+
+      .fade-in-up{opacity:0;transform:translateY(8px);animation:fadeUp .8s ease forwards .12s}
+      @keyframes fadeUp{ to{opacity:1; transform:none} }
+
+      #particles{ position:fixed; inset:0; z-index:0; pointer-events:none }
+
+      .neon-link{ background:linear-gradient(90deg,var(--magenta),var(--blue),var(--violet)); -webkit-background-clip:text; background-clip:text; color:transparent; text-decoration:none }
+      .neon-link:hover{ filter:drop-shadow(0 0 8px rgba(255,0,255,0.14)); transform:translateY(-1px) }
+    </style>
+  </head>
+  <body>
+    <canvas id="particles" aria-hidden="true"></canvas>
+
+    <main class="min-h-screen flex items-center justify-center px-6 py-12 relative">
+      <!-- 🌌 Signup Container -->
+      <section class="w-full max-w-lg glow-border rounded-2xl p-8" style="background:var(--card-bg);backdrop-filter:blur(10px); box-shadow: inset 0 -6px 20px rgba(0,0,0,0.5);">
+        <div class="relative z-10 text-center mb-6 fade-in-up">
+          <div class="mx-auto w-24 h-24 rounded-full flex items-center justify-center mb-4" style="background:linear-gradient(135deg,rgba(255,0,255,0.06),rgba(106,90,205,0.04)); box-shadow:0 6px 28px rgba(75,0,130,0.18); animation: float 4s ease-in-out infinite;">
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <rect x="3" y="5" width="18" height="14" rx="3" stroke="url(#g)" stroke-width="1.2" fill="rgba(255,255,255,0.02)"/>
+              <circle cx="8.5" cy="11" r="1.2" fill="#fff" opacity="0.95"/>
+              <circle cx="15.5" cy="11" r="1.2" fill="#fff" opacity="0.95"/>
+              <path d="M7 17c1-1 3-1 5-1s4 0 5 1" stroke="url(#g)" stroke-width="0.9" stroke-linecap="round"/>
+              <defs>
+                <linearGradient id="g" x1="0" x2="1">
+                  <stop offset="0%" stop-color="#ff00ff"/>
+                  <stop offset="50%" stop-color="#6a5acd"/>
+                  <stop offset="100%" stop-color="#4b0082"/>
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+
+          <h1 class="text-2xl font-extrabold neon-gradient">Create Your Timelytics Account</h1>
+          <p class="text-sm text-gray-300 mt-2">Join Timelytics to manage classrooms and optimize schedules instantly.</p>
+        </div>
+
+        <!-- 🖊 Form Fields -->
+        <form id="signupForm" class="space-y-4 z-10 relative" onsubmit="event.preventDefault(); handleSignup();">
+          <div>
+            <label for="name" class="block text-xs text-gray-300 mb-2">Full name</label>
+            <input id="name" name="name" type="text" required placeholder="Your full name" class="neon-input w-full rounded-lg px-4 py-3 bg-[#0f1114] placeholder:text-gradient placeholder:font-medium text-sm border border-transparent focus:ring-0 transition-all" style="color:#e6eef8; box-shadow: inset 0 -2px 12px rgba(0,0,0,0.6);">
+          </div>
+
+          <div>
+            <label for="email" class="block text-xs text-gray-300 mb-2">Email</label>
+            <input id="email" name="email" type="email" required placeholder="you@school.edu" class="neon-input w-full rounded-lg px-4 py-3 bg-[#0f1114] placeholder:text-gradient placeholder:font-medium text-sm border border-transparent focus:ring-0 transition-all" style="color:#e6eef8; box-shadow: inset 0 -2px 12px rgba(0,0,0,0.6);">
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <label for="password" class="block text-xs text-gray-300 mb-2">Password</label>
+              <input id="password" name="password" type="password" required placeholder="Create a password" class="neon-input w-full rounded-lg px-4 py-3 bg-[#0f1114] placeholder:text-gradient placeholder:font-medium text-sm border border-transparent focus:ring-0 transition-all" style="color:#e6eef8; box-shadow: inset 0 -2px 12px rgba(0,0,0,0.6);">
+            </div>
+            <div>
+              <label for="confirm" class="block text-xs text-gray-300 mb-2">Confirm Password</label>
+              <input id="confirm" name="confirm" type="password" required placeholder="Repeat password" class="neon-input w-full rounded-lg px-4 py-3 bg-[#0f1114] placeholder:text-gradient placeholder:font-medium text-sm border border-transparent focus:ring-0 transition-all" style="color:#e6eef8; box-shadow: inset 0 -2px 12px rgba(0,0,0,0.6);">
+            </div>
+          </div>
+
+          <div>
+            <label for="role" class="block text-xs text-gray-300 mb-2">Role</label>
+            <select id="role" name="role" class="w-full rounded-lg px-4 py-3 bg-[#0f1114] text-sm border border-transparent neon-input">
+              <option value="student">Student</option>
+              <option value="faculty">Faculty</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <label class="neon-check flex items-center gap-3 text-sm text-gray-300">
+              <input type="checkbox" id="terms" name="terms">
+              <span class="box"></span>
+              <span class="ml-2">I agree to <a href="#" class="neon-link">Terms & Conditions</a></span>
+            </label>
+          </div>
+
+          <!-- 🔘 Buttons -->
+          <div class="space-y-3">
+            <button type="submit" id="signupBtn" class="w-full rounded-lg py-3 font-semibold text-sm" style="background:linear-gradient(90deg,var(--magenta),var(--blue),var(--violet)); box-shadow:0 8px 26px rgba(106,90,205,0.12); transition:transform .14s ease, box-shadow .14s ease;">Sign Up</button>
+
+            <div class="text-center text-sm text-gray-300">
+              Already have an account? <a href="/frontend/login.html" class="neon-link">Login</a>
+            </div>
+          </div>
+        </form>
+
+        <!-- 📞 Footer -->
+        <footer class="text-center text-xs text-gray-400 mt-6">
+          © 2025 Timelytics — Smart Classroom & Timetable Scheduler
+        </footer>
+      </section>
+    </main>
+
+    <script>
+      // interactions
+      const signupBtn = document.getElementById('signupBtn');
+      const inputs = document.querySelectorAll('.neon-input');
+
+      signupBtn.addEventListener('mouseover', ()=>{ signupBtn.style.transform = 'translateY(-3px) scale(1.01)'; signupBtn.style.boxShadow = '0 18px 48px rgba(106,90,205,0.18), 0 6px 20px rgba(255,0,255,0.06)'; });
+      signupBtn.addEventListener('mouseout', ()=>{ signupBtn.style.transform = 'none'; signupBtn.style.boxShadow = '0 8px 26px rgba(106,90,205,0.12)'; });
+
+      inputs.forEach(input=>{
+        input.addEventListener('focus', ()=>{ input.style.boxShadow = '0 0 24px rgba(255,0,255,0.12), 0 0 32px rgba(106,90,205,0.08)'; input.style.border = '1px solid rgba(255,255,255,0.03)'; })
+        input.addEventListener('blur', ()=>{ input.style.boxShadow = 'inset 0 -2px 12px rgba(0,0,0,0.6)'; input.style.border = '1px solid transparent'; })
+      })
+
+      function handleSignup(){
+        const name = document.getElementById('name').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value;
+        const confirm = document.getElementById('confirm').value;
+        const role = document.getElementById('role').value;
+        const terms = document.getElementById('terms').checked;
+
+        if(!name || !email || !password || !confirm){ flash('Please fill all fields'); return; }
+        if(password !== confirm){ flash('Passwords do not match'); return; }
+        if(!terms){ flash('Please accept the Terms & Conditions'); return; }
+
+        flash('Creating account...', 1200);
+        // TODO: replace with actual backend API call
+        setTimeout(()=>{
+          flash('Account created — redirecting...', 900);
+          // window.location.href = '/frontend/login.html';
+        }, 1000);
+      }
+
+      function flash(msg, t=900){
+        const el = document.createElement('div');
+        el.textContent = msg;
+        el.style.cssText = 'position:fixed;left:50%;transform:translateX(-50%);bottom:28px;background:rgba(255,255,255,0.04);padding:10px 16px;border-radius:999px;color:#e6eef8;font-weight:600;backdrop-filter:blur(6px);box-shadow:0 6px 18px rgba(0,0,0,0.6);z-index:60;';
+        document.body.appendChild(el);
+        setTimeout(()=>el.style.opacity=0, t-120);
+        setTimeout(()=>el.remove(), t+80);
+      }
+
+      // optional particles (lightweight)
+      (function(){
+        const canvas = document.getElementById('particles');
+        if(!canvas) return;
+        const ctx = canvas.getContext('2d');
+        let w,h,particles=[];
+        function resize(){ w=canvas.width = innerWidth; h=canvas.height = innerHeight; }
+        window.addEventListener('resize', resize);
+        resize();
+
+        function init(){ particles = []; const count = Math.floor((w*h)/90000); for(let i=0;i<count;i++) particles.push({x:Math.random()*w,y:Math.random()*h,r:Math.random()*1.6+0.4, vx:(Math.random()-0.5)/2, vy:(Math.random()-0.5)/2}); }
+        init();
+
+        function step(){ ctx.clearRect(0,0,w,h); for(const p of particles){ p.x += p.vx; p.y += p.vy; if(p.x<0) p.x=w; if(p.x>w) p.x=0; if(p.y<0) p.y=h; if(p.y>h) p.y=0; const g = ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.r*10); g.addColorStop(0,'rgba(106,90,205,0.12)'); g.addColorStop(1,'rgba(75,0,130,0)'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill(); } requestAnimationFrame(step); }
+        step();
+      })();
+    </script>
+
+    <style>
+      @keyframes float{ 0%{ transform: translateY(0) } 50%{ transform: translateY(-6px) } 100%{ transform: translateY(0) } }
+    </style>
+  </body>
+</html>
