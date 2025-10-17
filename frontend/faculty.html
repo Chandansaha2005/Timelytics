@@ -164,9 +164,12 @@
           <button class="pill" aria-label="Notifications" title="Notifications">🔔 <span id="notifBadge" class="ml-1 text-xs bg-red-500 rounded-full px-1">3</span></button>
 
           <div class="flex items-center gap-2" aria-haspopup="true">
+            <!-- Firebase auth button (will toggle sign-in/out) -->
+            <button id="firebaseAuthBtn" class="pill">Sign in</button>
+
             <button id="profileBtn" class="flex items-center gap-2">
-              <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-[#6a00f4] to-[#00bfff] flex items-center justify-center text-sm font-bold">DS</div>
-              <div class="text-sm text-white/90">Dr. Sharma</div>
+              <div id="profileAvatar" class="w-8 h-8 rounded-full bg-gradient-to-tr from-[#6a00f4] to-[#00bfff] flex items-center justify-center text-sm font-bold">DS</div>
+              <div id="profileName" class="text-sm text-white/90">Dr. Sharma</div>
             </button>
           </div>
         </div>
@@ -627,6 +630,77 @@
     // small accessibility: focus styles for keyboard users
     document.body.addEventListener('keyup', e=>{
       if(e.key==='Tab') document.body.classList.add('user-is-tabbing');
+    });
+  </script>
+  <!-- Firebase client: initialize and sign-in handler -->
+  <script type="module">
+    // Firebase client SDK (module) - use the config you provided
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCKicsW6Y80Nz0rAoLbhiBXk_oefil1g-0",
+      authDomain: "timelytics-sigma.firebaseapp.com",
+      projectId: "timelytics-sigma",
+      storageBucket: "timelytics-sigma.firebasestorage.app",
+      messagingSenderId: "1040003628177",
+      appId: "1:1040003628177:web:d2cf433c8853e699c59330",
+      measurementId: "G-6ZWFYX2JYS"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
+
+    const authBtn = document.getElementById('firebaseAuthBtn');
+    const profileName = document.getElementById('profileName');
+    const profileAvatar = document.getElementById('profileAvatar');
+
+    async function sendIdTokenToBackend(idToken){
+      try{
+        const res = await fetch('/api/auth/me-firebase', {
+          method: 'GET',
+          headers: { 'Authorization': 'Bearer '+idToken }
+        });
+        if(!res.ok) throw new Error('Backend rejected token');
+        const data = await res.json();
+        console.debug('Backend me-firebase:', data);
+        if(data.user){
+          profileName.textContent = data.user.name || data.user.email || 'Faculty';
+          // avatar initials
+          const initials = (data.user.name || data.user.email || 'F').split(' ').map(s=>s[0]).slice(0,2).join('').toUpperCase();
+          profileAvatar.textContent = initials;
+        }
+      }catch(e){
+        console.warn('Failed to call backend with Firebase token', e);
+        alert('Sign-in succeeded but backend rejected token. Check backend logs.');
+      }
+    }
+
+    onAuthStateChanged(auth, async user => {
+      if(user){
+        authBtn.textContent = 'Sign out';
+        const token = await user.getIdToken();
+        await sendIdTokenToBackend(token);
+      } else {
+        authBtn.textContent = 'Sign in';
+        profileName.textContent = 'Guest';
+        profileAvatar.textContent = 'G';
+      }
+    });
+
+    authBtn.addEventListener('click', async ()=>{
+      const user = auth.currentUser;
+      if(user){
+        await signOut(auth);
+        return;
+      }
+      try{
+        await signInWithPopup(auth, provider);
+      }catch(e){
+        console.error('Firebase sign-in failed', e);
+        alert('Sign-in failed: '+e.message);
+      }
     });
   </script>
 </body>

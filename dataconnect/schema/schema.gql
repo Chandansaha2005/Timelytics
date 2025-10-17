@@ -1,0 +1,42 @@
+type Faculty @table {
+  firstName: String!
+  lastName: String!
+  email: String!
+  department: String
+  officeLocation: String
+  teachingPreferences: [String]
+}
+
+type Classroom @table {
+  roomNumber: String!
+  capacity: Int!
+  building: String
+  equipment: [String]
+}
+
+type Course @table {
+  courseCode: String!
+  title: String!
+  creditHours: Int!
+  description: String
+  prerequisites: [String]
+  idealClassSize: Int
+}
+
+type ScheduleSlot @table {
+  course: Course!
+  faculty: Faculty
+  classroom: Classroom
+  dayOfWeek: String!
+  startTime: Timestamp!
+  endTime: Timestamp!
+  sectionNumber: String
+  semester: String
+}
+
+type Enrollment @table {
+  course: Course!
+  studentId: UUID!
+  enrolledDate: Date!
+  grade: String
+}

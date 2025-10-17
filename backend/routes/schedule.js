@@ -4,6 +4,7 @@ const { requireAuth } = require('../middleware/auth');
 
 const scheduleQueue = require('../queues/scheduleQueue');
 const router = express.Router();
+const { generateSchedule } = require('../services/scheduler');
 
 // Simple in-memory timeslots for demo
 const TIMES = ['Mon 8','Mon 9','Mon 10','Mon 11','Mon 12','Mon 13','Mon 14','Mon 15','Mon 16'];
@@ -15,10 +16,24 @@ router.post('/generate', async (req, res) => {
   res.json({ taskId: job.id, status: 'queued' });
 });
 
+// Synchronous generation (useful for landing page/testing) - runs the greedy scheduler inline
+router.post('/generate-sync', async (req, res) => {
+  try{
+    const opts = req.body.options || {};
+    const placements = await generateSchedule(opts);
+    res.json({ success:true, placed: placements.length, placements });
+  }catch(e){ console.error(e); res.status(500).json({ error: e.message }); }
+});
+
 router.get('/', async (req, res) => {
   const tts = await Timetable.find().populate('room subject teacher').lean();
   res.json(tts);
 });
+
+// resource endpoints
+router.get('/subjects/list', async (req, res) => { const subs = await Subject.find().populate('teacher').lean(); res.json(subs); });
+router.get('/classrooms/list', async (req, res) => { const rooms = await Classroom.find().lean(); res.json(rooms); });
+router.get('/faculty/list', async (req, res) => { const f = await Faculty.find().lean(); res.json(f); });
 
 // Manual override: move a timetable entry to a new day/time (and optional room)
 router.post('/override', requireAuth, async (req, res) => {

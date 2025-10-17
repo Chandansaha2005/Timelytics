@@ -47,4 +47,17 @@ router.get('/me', async (req, res) => {
   }
 });
 
+// Optional: Firebase-authenticated current user (uses firebaseAuth middleware)
+try {
+  const firebaseAuth = require('../middleware/firebaseAuth');
+  router.get('/me-firebase', firebaseAuth, async (req, res) => {
+    const u = req.user.toObject ? req.user.toObject() : req.user;
+    delete u.passwordHash;
+    res.json({ user: u, firebase: req.firebase.decoded });
+  });
+} catch (e) {
+  // If Firebase packages are not installed or configured, skip exposing the route.
+  console.warn('Firebase auth route not mounted:', e.message);
+}
+
 module.exports = router;
