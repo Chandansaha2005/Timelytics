@@ -597,40 +597,218 @@
     // Wire quick action buttons (demo)
     document.getElementById('actMark').addEventListener('click', ()=> openAttendanceModal({subject:'Quick Mark', batch:'All', enrolledCount:12, capacity:12, timeStart:'--:--', timeEnd:'--:--', room:'--', type:'Theory'}));
     document.getElementById('actUpload').addEventListener('click', ()=> showModal('<div class="glass p-3"><h3>Upload Notes</h3><div class="mt-3 p-4 border-dashed border rounded bg-white/2 text-center">Drag & drop files here</div><div class="mt-3 text-right"><button class="pill" onclick="closeModal()">Close</button></div></div>'));
-    document.getElementById('actAnnounce').addEventListener('click', ()=> showModal('<div class="glass p-3"><h3>Compose Announcement</h3><textarea class="w-full mt-2 p-2 rounded bg-white/2" rows="4"></textarea><div class="mt-3 text-right"><button class="pill">Send</button></div></div>'));
+    // Replace announcement button with Adjust Class flow
+    document.getElementById('actAnnounce').addEventListener('click', openAdjustClassModal);
     document.getElementById('actResources').addEventListener('click', ()=> showModal('<div class="glass p-3">Classroom resources (demo)</div>'));
 
-    // Stagger reveal animation on load
-    window.addEventListener('load', ()=>{
-      document.querySelectorAll('.glass.hover-tilt, .glass.neon-edge').forEach((el,i)=> setTimeout(()=> el.classList.add('reveal','visible'), i*80));
-      // make current time line visible and update position periodically
-      const line = document.getElementById('currentLine');
-      if(line) line.style.display = 'block';
-      setInterval(()=> updateCurrentLine(line), 60000);
-      updateCurrentLine(line);
-    });
+    /* ===== Adjust Class: modal + logic =====
+       - Lists faculty classes (reads from timetable DOM)
+       - Allows selecting one class and delaying it by X minutes
+       - If previous teacher still in room (ongoing class) user can delay
+       - Optionally cascade shifts to subsequent classes in same room
+    */
+    function toMinutes(hm){ const [h,m]=hm.split(':').map(Number); return h*60 + m; }
+    function fromMinutes(min){ const hh = String(Math.floor(min/60)).padStart(2,'0'); const mm = String(min%60).padStart(2,'0'); return hh+':'+mm; }
 
-    function updateCurrentLine(line){
-      // simple demo: compute a top offset relative to timetable grid depending on current time
-      const grid = document.querySelector('.tt-grid');
-      if(!grid || !line) return;
-      const startHour = 8; const endHour = 18;
-      const now = new Date();
-      const hour = now.getHours() + now.getMinutes()/60;
-      if(hour < startHour || hour > endHour){ line.style.display='none'; return; }
-      line.style.display='block';
-      const totalSlots = (endHour - startHour);
-      const pct = (hour - startHour)/totalSlots;
-      // compute approximate top inside timetable (estimate)
-      const rect = grid.getBoundingClientRect();
-      const top = rect.top + pct * (rect.height - 40);
-      line.style.top = (top - rect.top + 6) + 'px';
+    function getClassesFromDOM(){
+      // collect class objects from timetable slots that were populated earlier
+      const nodes = Array.from(document.querySelectorAll('.tt-slot[data-class-id]'));
+      return nodes.map(n=>{
+        return {
+          id: n.dataset.classId,
+          subject: (n.querySelector('.font-semibold')?.textContent || '').trim(),
+          room: n.querySelector('.meta') ? (n.querySelector('.meta').textContent.split('•').pop()||'').trim() : (n.dataset.room || ''),
+          day: n.dataset.day,
+          start: n.dataset.start || (n.querySelector('.meta')?.textContent.match(/\d{2}:\d{2}/)?.[0] || ''),
+          end: n.dataset.end || '', // may be absent if not set
+          node: n
+        };
+      }).filter(c=>c.id);
     }
 
-    // small accessibility: focus styles for keyboard users
-    document.body.addEventListener('keyup', e=>{
-      if(e.key==='Tab') document.body.classList.add('user-is-tabbing');
-    });
+    async function openAdjustClassModal(){
+      const classes = getClassesFromDOM();
+      if(classes.length===0) return showModal(`<div class="glass p-4"><h3>No classes found</h3><p class="text-xs text-white/70">Your timetable appears empty.</p><div class="mt-3 text-right"><button class="pill" onclick="closeModal()">Close</button></div></div>`);
+
+      // build options
+      const opts = classes.map(c=>`<label class="block p-2 rounded hover:bg-white/3"><input type="radio" name="adjClass" value="${c.id}" ${classes[0].id===c.id?'checked':''}/> <span class="ml-2 font-semibold">${c.subject || '—'} • ${c.day} • ${c.start || '—'}</span><div class="text-xs text-white/60 mt-1">Room: ${c.room || '—'}</div></label>`).join('');
+
+      showModal(`
+        <div class="glass p-4">
+          <h3 class="font-bold">Adjust Class Time</h3>
+          <p class="text-xs text-white/70 mt-1">Choose one of your classes. If the previous teacher hasn't left the room yet you may delay your start. You can cascade shifts to later classes in the same room.</p>
+          <div class="mt-3 space-y-2">${opts}</div>
+
+          <div class="mt-3 grid grid-cols-2 gap-2">
+            <label class="block"><div class="text-xs text-white/70">Delay minutes</div><input id="adjMinutes" type="number" min="1" max="120" value="10" class="p-2 rounded bg-white/3" /></label>
+            <label class="block"><div class="text-xs text-white/70">Cascade conflicts</div><input id="adjCascade" type="checkbox" class="mt-3" /></label>
+          </div>
+
+          <div class="mt-3 text-sm" id="adjustPreview"><em class="text-white/70">Preview will show affected classes here.</em></div>
+
+          <div class="mt-4 text-right">
+            <button id="btnAdjPreview" class="pill">Preview</button>
+            <button id="btnAdjConfirm" class="pill">Apply</button>
+            <button class="pill" onclick="closeModal()">Cancel</button>
+          </div>
+        </div>
+      `);
+
+      document.getElementById('btnAdjPreview').addEventListener('click', ()=> previewAdjust(classes));
+      document.getElementById('btnAdjConfirm').addEventListener('click', ()=> confirmAdjust(classes));
+    }
+
+    function previewAdjust(classes){
+      const sel = document.querySelector('input[name="adjClass"]:checked');
+      if(!sel) return alert('Select a class to adjust');
+      const id = sel.value;
+      const minutes = parseInt(document.getElementById('adjMinutes').value || '0',10);
+      const cascade = document.getElementById('adjCascade').checked;
+      const cls = classes.find(c=>c.id===id);
+      if(!cls) return;
+
+      // compute duration from DOM if possible (attempt to read data-end or assume 60)
+      const startMin = toMinutes(cls.start || '00:00');
+      let dur = 60;
+      // try infer end from node.dataset.end or .meta text (simple regex)
+      const meta = cls.node?.querySelector('.meta')?.textContent || '';
+      const times = meta.match(/(\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})/);
+      if(times){ dur = toMinutes(times[2]) - toMinutes(times[1]); }
+      const newStart = startMin + minutes;
+      const newEnd = newStart + dur;
+
+      // find conflicts in same room whose start < newEnd and id != cls.id
+      const conflicts = classes.filter(c=>{
+        if(c.room !== cls.room) return false;
+        if(c.id === cls.id) return false;
+        const s = toMinutes(c.start || '00:00');
+        // assume duration 60 for others if not parseable
+        let d = 60;
+        const tm = c.node?.querySelector('.meta')?.textContent || '';
+        const tmatch = tm.match(/(\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})/);
+        if(tmatch) d = toMinutes(tmatch[2]) - toMinutes(tmatch[1]);
+        const e = s + d;
+        return (s < newEnd && e > newStart);
+      });
+
+      const prevOngoing = classes.find(c=>{
+        if(c.room !== cls.room) return false;
+        const s = toMinutes(c.start || '00:00');
+        let d = 60;
+        const tm = c.node?.querySelector('.meta')?.textContent || '';
+        const tmatch = tm.match(/(\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})/);
+        if(tmatch) d = toMinutes(tmatch[2]) - toMinutes(tmatch[1]);
+        const e = s + d;
+        const nowMin = (new Date()).getHours()*60 + (new Date()).getMinutes();
+        // previous class considered ongoing if it started before now and ends after now
+        return (s <= nowMin && e > nowMin && e > s && c.id !== cls.id && e <= startMin + 60); // close previous in time
+      });
+
+      const previewEl = document.getElementById('adjustPreview');
+      previewEl.innerHTML = `<div class="text-sm text-white/80">Selected: <strong>${cls.subject}</strong> — ${cls.start} → ${fromMinutes(newStart)} (delay ${minutes}m)</div>`;
+      if(prevOngoing) previewEl.innerHTML += `<div class="mt-2 text-xs text-yellow-300">Previous class (${prevOngoing.subject}) appears to be still ongoing in ${cls.room} — delaying is allowed.</div>`;
+      if(conflicts.length){
+        previewEl.innerHTML += `<div class="mt-2 text-xs">Conflicts (${conflicts.length}):<ul class="ml-4">${conflicts.map(c=>`<li>${c.subject} • ${c.start}</li>`).join('')}</ul></div>`;
+        if(!cascade) previewEl.innerHTML += `<div class="mt-2 text-xs text-white/70">Check "Cascade conflicts" to shift these classes automatically.</div>`;
+      } else {
+        previewEl.innerHTML += `<div class="mt-2 text-xs text-green-300">No direct conflicts in the same room.</div>`;
+      }
+    }
+
+    async function confirmAdjust(classes){
+      const sel = document.querySelector('input[name="adjClass"]:checked');
+      if(!sel) return alert('Select a class to adjust');
+      const id = sel.value;
+      const minutes = parseInt(document.getElementById('adjMinutes').value || '0',10);
+      const cascade = document.getElementById('adjCascade').checked;
+      const cls = classes.find(c=>c.id===id);
+      if(!cls) return;
+
+      // duration inference as in preview
+      const startMin = toMinutes(cls.start || '00:00');
+      let dur = 60;
+      const meta = cls.node?.querySelector('.meta')?.textContent || '';
+      const times = meta.match(/(\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})/);
+      if(times){ dur = toMinutes(times[2]) - toMinutes(times[1]); }
+
+      // re-check previous ongoing condition: if previous still ongoing allow delay, else allow too but warn
+      const nowMin = (new Date()).getHours()*60 + (new Date()).getMinutes();
+      const prevOngoing = classes.find(c=>{
+        if(c.room !== cls.room) return false;
+        const s = toMinutes(c.start || '00:00');
+        let d = 60;
+        const tm = c.node?.querySelector('.meta')?.textContent || '';
+        const tmatch = tm.match(/(\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})/);
+        if(tmatch) d = toMinutes(tmatch[2]) - toMinutes(tmatch[1]);
+        const e = s + d;
+        return (s <= nowMin && e > nowMin && c.id !== cls.id);
+      });
+
+      if(!prevOngoing && minutes>30 && !confirm('You are delaying beyond 30 minutes while no ongoing previous class detected. Proceed?')) return;
+
+      const changes = [];
+      // apply delay to selected
+      const newStart = startMin + minutes;
+      const newEnd = newStart + dur;
+      changes.push({ id: cls.id, newStart: fromMinutes(newStart), newEnd: fromMinutes(newEnd) });
+
+      // find subsequent classes in same room and shift if cascade
+      let affected = [];
+      const later = classes.filter(c=> c.room===cls.room && toMinutes(c.start || '00:00') >= startMin && c.id!==cls.id)
+                           .sort((a,b)=> toMinutes(a.start)-toMinutes(b.start));
+      if(cascade && later.length){
+        let cursor = newEnd;
+        for(const l of later){
+          // infer duration
+          let ld = 60;
+          const lt = l.node?.querySelector('.meta')?.textContent || '';
+          const lm = lt.match(/(\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})/);
+          if(lm) ld = toMinutes(lm[2]) - toMinutes(lm[1]);
+          const lNewStart = Math.max(cursor, toMinutes(l.start||'00:00'));
+          const lNewEnd = lNewStart + ld;
+          changes.push({ id: l.id, newStart: fromMinutes(lNewStart), newEnd: fromMinutes(lNewEnd) });
+          cursor = lNewEnd;
+          affected.push(l);
+        }
+      } else {
+        // if conflicts exist and no cascade, warn user
+        const conflicts = later.filter(c=> {
+          let ld = 60;
+          const lt = c.node?.querySelector('.meta')?.textContent || '';
+          const lm = lt.match(/(\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})/);
+          if(lm) ld = toMinutes(lm[2]) - toMinutes(lm[1]);
+          return toMinutes(c.start || '00:00') < newEnd;
+        });
+        if(conflicts.length && !confirm(`There are ${conflicts.length} conflicting classes later. Enable cascade to shift them automatically or cancel.`)) return;
+      }
+
+      // send to backend (demo)
+      try{
+        const payload = { faculty: 'me', changes, cascade };
+        const resp = await api('/api/faculty/reschedule', { method:'POST', body: JSON.stringify(payload) });
+        if(resp && resp.ok){
+          alert('Reschedule applied (demo). Changes will propagate.');
+          // optimistic UI update: adjust DOM times for changed classes
+          for(const ch of changes){
+            const node = document.querySelector(`.tt-slot[data-class-id="${ch.id}"]`);
+            if(node){
+              // update meta text if present
+              const metaEl = node.querySelector('.meta');
+              if(metaEl){
+                // replace first time occurrence
+                metaEl.textContent = metaEl.textContent.replace(/\d{2}:\d{2}\s*-\s*\d{2}:\d{2}/, `${ch.newStart} - ${ch.newEnd}`);
+              }
+              node.dataset.start = ch.newStart;
+              node.dataset.end = ch.newEnd;
+            }
+          }
+          closeModal();
+        } else {
+          alert('Failed to apply reschedule.');
+        }
+      }catch(e){ console.error(e); alert('Error applying schedule change'); }
+    }
+    
   </script>
   <!-- Firebase client: initialize and sign-in handler -->
   <script type="module">
