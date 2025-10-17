@@ -12,6 +12,9 @@
   <!-- Tailwind (CDN) -->
   <script src="https://cdn.tailwindcss.com"></script>
 
+  <!-- jsPDF (for client-side PDF export) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  
   <style>
     /* Theme variables */
     :root {
@@ -955,18 +958,31 @@
         btn.disabled = true;
         if (!window.jspdf) { alert('PDF library not available'); btn.disabled = false; return; }
         const { jsPDF } = window.jspdf;
+
+        // Read table DOM
+        const table = document.querySelector('#recentContainer table');
+        if (!table) { alert('No timetable table to export'); btn.disabled = false; return; }
+
+        // Extract headers and rows from DOM table
+        const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.textContent.trim());
+        const trs = Array.from(table.querySelectorAll('tbody tr'));
+        const rows = trs.map(tr => Array.from(tr.children).map(td => td.textContent.trim()));
+
         const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
         const pageW = pdf.internal.pageSize.getWidth();
         const pageH = pdf.internal.pageSize.getHeight();
         const margin = 40;
+        const usableW = pageW - margin * 2;
+        const colCount = headers.length || 6;
+        const colWidth = Math.floor(usableW / colCount);
+        const colWidths = new Array(colCount).fill(colWidth);
         const lineHeight = 18;
-        const colWidths = [70, 110, 160, 140, 90, 80]; // Date, Time, Subject, Faculty, Section, Room
 
         // white background
         pdf.setFillColor(255,255,255);
         pdf.rect(0,0,pageW,pageH,'F');
 
-        // header
+        // header text
         pdf.setFontSize(16);
         pdf.setFont('helvetica','bold');
         pdf.setTextColor(0,0,0);
@@ -979,11 +995,10 @@
         let y = margin + 36;
         pdf.setFont('helvetica','bold');
         pdf.setFontSize(11);
-        const headers = ['Date','Time','Subject','Faculty','Section','Room'];
         let x = margin;
-        for (let i=0;i<headers.length;i++){
-          pdf.text(headers[i], x + 2, y);
-          x += colWidths[i];
+        for (let i = 0; i < headers.length; i++) {
+          pdf.text(String(headers[i] || ''), x + 2, y);
+          x += colWidths[i] || colWidth;
         }
         y += 8;
         pdf.setDrawColor(0);
@@ -991,28 +1006,7 @@
         pdf.line(margin, y, pageW - margin, y);
         y += 10;
 
-        // build rows from window.adminTimetables (same mapping as renderAdminTables)
-        const rows = [];
-        (window.adminTimetables || []).forEach(tt => {
-          const date = tt.date || '';
-          const start = tt.collegeStart || tt.collegeStart || '';
-          const duration = Number(tt.duration || 60);
-          if (Array.isArray(tt.subjects) && tt.subjects.length) {
-            tt.subjects.forEach((s, idx) => {
-              const fac = (tt.faculties && tt.faculties[idx]) ? tt.faculties[idx].name : (tt.faculties && tt.faculties[0] && tt.faculties[0].name) || '';
-              const [h,m] = (start || '00:00').split(':').map(x=>Number(x));
-              const startMin = h*60 + (m||0) + (idx * duration);
-              const endMin = startMin + duration;
-              const hh1 = String(Math.floor(startMin/60)).padStart(2,'0'), mm1 = String(startMin%60).padStart(2,'0');
-              const hh2 = String(Math.floor(endMin/60)).padStart(2,'0'), mm2 = String(endMin%60).padStart(2,'0');
-              rows.push([date, `${hh1}:${mm1} - ${hh2}:${mm2}`, s.name || s, fac || '', tt.section || '', tt.room || '']);
-            });
-          } else {
-            rows.push([date, `${start} - ${start}`, tt.subjectName || '', (tt.faculties && tt.faculties[0] && tt.faculties[0].name) || '', tt.section || '', tt.room || '']);
-          }
-        });
-
-        // render rows with simple wrapping and page breaks
+        // table rows
         pdf.setFont('helvetica','normal');
         pdf.setFontSize(10);
         for (const r of rows) {
@@ -1024,12 +1018,12 @@
             y = margin;
           }
           x = margin;
-          for (let i=0;i<r.length;i++){
-            const cellText = String(r[i]||'');
-            const maxWidth = colWidths[i] - 6;
+          for (let i = 0; i < colCount; i++) {
+            const cellText = String(r[i] || '');
+            const maxWidth = (colWidths[i] || colWidth) - 6;
             const split = pdf.splitTextToSize(cellText, maxWidth);
             pdf.text(split, x + 2, y + 10);
-            x += colWidths[i];
+            x += (colWidths[i] || colWidth);
           }
           y += rowHeight;
           pdf.setDrawColor(220);
