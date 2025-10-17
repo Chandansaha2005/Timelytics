@@ -578,6 +578,10 @@
       <div id="recentContainer">
         <div class="recent-empty">No timetables yet. Create one using the "Create Timetable" button above.</div>
       </div>
+
+      <div class="mt-3 text-right">
+        <button id="exportAdminPdf" class="btn-primary">Export PDF</button>
+      </div>
     </div>
   </section>
 
@@ -943,7 +947,104 @@
         return resp;
       };
     })();
+
+    // Export admin recent timetables to PDF (white background, black text)
+    document.getElementById('exportAdminPdf').addEventListener('click', async (evt) => {
+      const btn = evt.currentTarget;
+      try {
+        btn.disabled = true;
+        if (!window.jspdf) { alert('PDF library not available'); btn.disabled = false; return; }
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
+        const pageW = pdf.internal.pageSize.getWidth();
+        const pageH = pdf.internal.pageSize.getHeight();
+        const margin = 40;
+        const lineHeight = 18;
+        const colWidths = [70, 110, 160, 140, 90, 80]; // Date, Time, Subject, Faculty, Section, Room
+
+        // white background
+        pdf.setFillColor(255,255,255);
+        pdf.rect(0,0,pageW,pageH,'F');
+
+        // header
+        pdf.setFontSize(16);
+        pdf.setFont('helvetica','bold');
+        pdf.setTextColor(0,0,0);
+        pdf.text('Timelytics — Recent Timetables', margin, margin);
+        pdf.setFontSize(10);
+        pdf.setFont('helvetica','normal');
+        pdf.text(`Generated: ${new Date().toLocaleString()}`, margin, margin + 16);
+
+        // table header
+        let y = margin + 36;
+        pdf.setFont('helvetica','bold');
+        pdf.setFontSize(11);
+        const headers = ['Date','Time','Subject','Faculty','Section','Room'];
+        let x = margin;
+        for (let i=0;i<headers.length;i++){
+          pdf.text(headers[i], x + 2, y);
+          x += colWidths[i];
+        }
+        y += 8;
+        pdf.setDrawColor(0);
+        pdf.setLineWidth(0.5);
+        pdf.line(margin, y, pageW - margin, y);
+        y += 10;
+
+        // build rows from window.adminTimetables (same mapping as renderAdminTables)
+        const rows = [];
+        (window.adminTimetables || []).forEach(tt => {
+          const date = tt.date || '';
+          const start = tt.collegeStart || tt.collegeStart || '';
+          const duration = Number(tt.duration || 60);
+          if (Array.isArray(tt.subjects) && tt.subjects.length) {
+            tt.subjects.forEach((s, idx) => {
+              const fac = (tt.faculties && tt.faculties[idx]) ? tt.faculties[idx].name : (tt.faculties && tt.faculties[0] && tt.faculties[0].name) || '';
+              const [h,m] = (start || '00:00').split(':').map(x=>Number(x));
+              const startMin = h*60 + (m||0) + (idx * duration);
+              const endMin = startMin + duration;
+              const hh1 = String(Math.floor(startMin/60)).padStart(2,'0'), mm1 = String(startMin%60).padStart(2,'0');
+              const hh2 = String(Math.floor(endMin/60)).padStart(2,'0'), mm2 = String(endMin%60).padStart(2,'0');
+              rows.push([date, `${hh1}:${mm1} - ${hh2}:${mm2}`, s.name || s, fac || '', tt.section || '', tt.room || '']);
+            });
+          } else {
+            rows.push([date, `${start} - ${start}`, tt.subjectName || '', (tt.faculties && tt.faculties[0] && tt.faculties[0].name) || '', tt.section || '', tt.room || '']);
+          }
+        });
+
+        // render rows with simple wrapping and page breaks
+        pdf.setFont('helvetica','normal');
+        pdf.setFontSize(10);
+        for (const r of rows) {
+          const rowHeight = lineHeight;
+          if (y + rowHeight > pageH - margin) {
+            pdf.addPage();
+            pdf.setFillColor(255,255,255);
+            pdf.rect(0,0,pageW,pageH,'F');
+            y = margin;
+          }
+          x = margin;
+          for (let i=0;i<r.length;i++){
+            const cellText = String(r[i]||'');
+            const maxWidth = colWidths[i] - 6;
+            const split = pdf.splitTextToSize(cellText, maxWidth);
+            pdf.text(split, x + 2, y + 10);
+            x += colWidths[i];
+          }
+          y += rowHeight;
+          pdf.setDrawColor(220);
+          pdf.setLineWidth(0.3);
+          pdf.line(margin, y, pageW - margin, y);
+        }
+
+        pdf.save(`Admin_Timetables_${new Date().toISOString().slice(0,10)}.pdf`);
+      } catch (err) {
+        console.error(err);
+        alert('Failed to generate PDF');
+      } finally {
+        btn.disabled = false;
+      }
+    });
   </script>
 </body>
-
 </html>

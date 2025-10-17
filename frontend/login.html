@@ -465,7 +465,7 @@
         if(pin !== SECRET_PIN){ pinAttempts++; flash('Invalid PIN'); return; }
         // success: redirect to admin dashboard
         flash('Admin sign-in successful', 800);
-        setTimeout(()=> location.href = 'admin-dashboard.html', 700);
+        setTimeout(()=> location.href = 'admin.html', 700);
         return;
       }
 
