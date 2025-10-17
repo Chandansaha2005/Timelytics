@@ -300,6 +300,21 @@
               </div>
             </div>
 
+            <!-- Signup admin toggle -->
+            <div class="mt-3">
+              <label class="neon-check flex items-center gap-3 text-sm text-gray-300">
+                <input type="checkbox" id="sadminCheckbox" name="sadminCheckbox">
+                <span class="box"></span>
+                <span class="ml-2">Admin Account</span>
+              </label>
+            </div>
+
+            <div id="sadminRow" style="display:none" class="mt-3">
+              <label for="sadminPin" class="block text-xs text-gray-300 mb-2">Admin PIN</label>
+              <input id="sadminPin" name="sadminPin" type="password" inputmode="numeric" pattern="\d{4}" placeholder="Enter 4-digit PIN"
+                class="neon-input w-full rounded-lg px-4 py-3 text-sm border border-transparent focus:ring-0" maxlength="4" />
+            </div>
+
             <div>
               <label for="srole" class="block text-xs text-gray-300 mb-2">Role</label>
               <select id="srole" name="role"
@@ -418,6 +433,17 @@
       });
     }
 
+    // Signup admin controls
+    const sadminCheckbox = document.getElementById('sadminCheckbox');
+    const sadminRow = document.getElementById('sadminRow');
+    const sadminPinInput = document.getElementById('sadminPin');
+    if(sadminCheckbox){
+      sadminCheckbox.addEventListener('change', ()=>{
+        sadminRow.style.display = sadminCheckbox.checked ? 'block' : 'none';
+        if(!sadminCheckbox.checked) sadminPinInput.value='';
+      });
+    }
+
     // Local storage user store (demo only)
     function readUsers(){ try{ return JSON.parse(localStorage.getItem('demoUsers')||'[]'); }catch(e){ return []; } }
     function writeUsers(u){ localStorage.setItem('demoUsers', JSON.stringify(u)); }
@@ -472,13 +498,20 @@
       setTimeout(()=>{
         const users = readUsers();
         if(users.find(u=>u.email.toLowerCase()===email.toLowerCase())){ setLoading(signupBtn,false); flash('Account already exists'); return; }
-          users.push({ name, email, password: pw, role }); writeUsers(users); setLoading(signupBtn,false);
+        // if signup requests admin account, validate PIN
+        let finalRole = role;
+        if(sadminCheckbox && sadminCheckbox.checked){
+          const spin = (sadminPinInput && sadminPinInput.value||'').trim();
+          if(spin !== SECRET_PIN){ setLoading(signupBtn,false); flash('Invalid admin PIN'); return; }
+          finalRole = 'admin';
+        }
+        users.push({ name, email, password: pw, role: finalRole }); writeUsers(users); setLoading(signupBtn,false);
           flash('Account created — redirecting...', 900);
           card.classList.remove('flipped');
           // redirect after short delay depending on role (use existing pages)
           setTimeout(()=>{
-            if(role === 'student') location.href = 'student.html';
-            else if(role === 'faculty') location.href = 'faculty.html';
+            if(finalRole === 'student') location.href = 'student.html';
+            else if(finalRole === 'faculty') location.href = 'faculty.html';
             else location.href = 'admin.html';
           }, 800);
       }, 800);
