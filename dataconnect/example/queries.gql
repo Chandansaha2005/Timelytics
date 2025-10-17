@@ -1,0 +1,37 @@
+mutation AddNewScheduleSlot(
+    $courseId: UUID!,
+    $dayOfWeek: String!,
+    $endTime: Timestamp!,
+    $startTime: Timestamp!
+) @auth(level: USER) {
+  scheduleSlot_insert(data: {
+    courseId: $courseId,
+    dayOfWeek: $dayOfWeek,
+    endTime: $endTime,
+    startTime: $startTime
+  })
+}
+
+query GetCourses @auth(level: PUBLIC, insecureReason: "This operation is safe to expose to the public") {
+  courses {
+    id
+    courseCode
+    title
+    description
+    creditHours
+  }
+}
+
+query GetFacultyByDepartment($department: String!) @auth(level: USER) {
+  faculties(where: {department: {eq: $department}}) {
+    id
+    firstName
+    lastName
+    email
+    department
+  }
+}
+
+mutation UpdateCourseDescription($id: UUID!, $description: String!) @auth(level: USER) {
+  course_update(id: $id, data: {description: $description})
+}

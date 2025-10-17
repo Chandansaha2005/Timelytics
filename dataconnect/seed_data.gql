@@ -1,0 +1,50 @@
+mutation SeedDatabase @transaction @auth(level: USER, insecureReason: "This operation is for seeding the database with initial data and is only used in development environments.") {
+  classroom_insertMany(data: [
+    {
+      building: "Science Hall",
+      capacity: 30,
+      equipment: ["Projector", "Whiteboard"],
+      roomNumber: "101"
+    },
+    {
+      building: "Engineering Building",
+      capacity: 25,
+      equipment: ["Computers", "Projector"],
+      roomNumber: "202"
+    }
+  ])
+  course_insertMany(data: [
+    {
+      courseCode: "CS101",
+      creditHours: 3,
+      description: "Introduction to Computer Science",
+      idealClassSize: 25,
+      title: "Intro to CS"
+    },
+    {
+      courseCode: "EE201",
+      creditHours: 4,
+      description: "Introduction to Electrical Engineering",
+      idealClassSize: 20,
+      title: "Intro to EE"
+    }
+  ])
+  faculty_insertMany(data: [
+    {
+      department: "Computer Science",
+      email: "john.doe@example.com",
+      firstName: "John",
+      lastName: "Doe",
+      officeLocation: "Science Hall 301",
+      teachingPreferences: ["CS101", "CS201"]
+    },
+    {
+      department: "Electrical Engineering",
+      email: "jane.smith@example.com",
+      firstName: "Jane",
+      lastName: "Smith",
+      officeLocation: "Engineering Building 201",
+      teachingPreferences: ["EE201", "EE301"]
+    }
+  ])
+}
