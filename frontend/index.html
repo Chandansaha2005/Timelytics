@@ -51,9 +51,9 @@
     spline-viewer.background,
     .background spline-viewer {
       display: block;
-      width: 100%;
-      height: 100%;
-      max-width: 2200px;
+      width: 110%;
+      height: 110%;
+      max-width: 2600px;
       object-fit: cover;
     }
 
@@ -121,6 +121,146 @@
       outline: 3px solid rgba(57,11,224,0.18);
       outline-offset: 2px;
     }
+
+    /* Header/navigation (sausage, transparent, sticky) */
+    header#topNav {
+      /* keep it fixed/sticky at the top but let the inner nav be the visible "sausage" */
+      position: fixed;
+      top: 12px;
+      left: 0;
+      right: 0;
+      z-index: 50;
+      display: flex;
+      justify-content: center;
+      background: transparent; /* fully transparent outer bar */
+      padding: 0;
+      pointer-events: none; /* allow clicks only on inner nav */
+      transition: top .2s ease, background .2s ease, box-shadow .2s ease;
+    }
+
+    /* the actual pill-shaped (sausage) nav */
+    header#topNav nav {
+      pointer-events: auto; /* re-enable interactions inside the pill */
+      width: calc(100% - 2rem);
+      max-width: 1120px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      padding: 0.45rem 0.9rem;
+      background: rgba(7,9,14,0.36); /* subtle glass so background remains visible */
+      border-radius: 9999px; /* sausage / pill */
+      box-shadow: 0 8px 30px rgba(2,6,23,0.32);
+      backdrop-filter: blur(6px);
+      position: relative; /* needed so centered UL can be absolute */
+    }
+
+    /* Brand (Timelytics) - blue → violet → magenta gradient */
+    header#topNav nav a[aria-label="Timelytics logo"] {
+      background: linear-gradient(90deg, #1e90ff 20%, #6a00f4 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      font-weight: 800;
+      font-size: 1.125rem;
+      text-decoration: none;
+      display: inline-block;
+      padding: 0.15rem 0.25rem;
+    }
+
+    /* Center the main navigation links (home, features, about, contact) on md+ */
+    @media (min-width: 768px) {
+      header#topNav nav ul.hidden.md\\:flex,
+      header#topNav nav ul {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        display: flex; /* ensures centered layout on md+ */
+        gap: 1.25rem;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        z-index: 60;
+      }
+
+      /* make link text white and visible against the background */
+      header#topNav nav ul li a {
+        color: #ffffff !important;
+        text-decoration: none;
+        padding: 0.25rem 0.5rem;
+        font-weight: 600;
+        transition: opacity .15s ease;
+      }
+      header#topNav nav ul li a:hover { opacity: 0.9; text-decoration: underline; }
+    }
+
+    /* Ensure other nav anchors (login..) are white too, but keep logo gradient */
+    header#topNav nav a:not([aria-label]) {
+      color: #ffffff;
+    }
+    header#topNav nav a:not([aria-label]):hover { opacity: 0.92; }
+
+    /* Keep the pill slightly more prominent when page is scrolled,
+       but remain translucent (not solid white) */
+    header#topNav.nav-scrolled nav {
+      background: rgba(255,255,255,0.06);
+      box-shadow: 0 10px 36px rgba(2,6,23,0.28);
+      backdrop-filter: blur(8px);
+    }
+
+    /* ensure links and buttons inside the pill keep spacing and don't wrap awkwardly */
+    header#topNav nav .flex.items-center.gap-6,
+    header#topNav nav .flex.items-center.gap-3 {
+      gap: 0.6rem;
+    }
+
+    /* small-screen tweaks so the pill doesn't hug edges too tightly */
+    @media (max-width: 640px) {
+      header#topNav { top: 8px; }
+      header#topNav nav { width: calc(100% - 1.25rem); padding: 0.35rem 0.6rem; }
+      header#topNav nav .hidden.md\\:flex { display: none; } /* preserve existing hidden behaviour */
+      header#topNav nav a[aria-label="Timelytics logo"] { font-size: 1rem; }
+      header#topNav nav a:not([aria-label]) { color: #ffffff; }
+    }
+
+    /* Footer: dark theme matching page */
+    footer#contact {
+      background: linear-gradient(180deg, rgba(7,9,20,0.88) 0%, rgba(3,1,12,0.96) 100%);
+      color: rgba(230,238,243,0.92);
+      border-top: 1px solid rgba(255,255,255,0.04);
+    }
+    footer#contact a { color: rgba(230,238,243,0.9); transition: color .15s ease, opacity .15s ease; }
+    footer#contact a:hover { color: #ffffff; opacity: 0.95; text-decoration: underline; }
+
+    .footer-brand {
+      background: linear-gradient(90deg, #1e90ff 0%, #6a00f4 50%, #ff2d95 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      font-weight: 800;
+      font-size: 1.125rem;
+      display: inline-block;
+      margin-bottom: 0.5rem;
+    }
+
+    .footer-sub {
+      color: rgba(230,238,243,0.72);
+      font-size: 0.95rem;
+    }
+
+    footer#contact .max-w-7xl { padding-left: 1rem; padding-right: 1rem; }
+    footer#contact .socials a {
+      display:inline-flex; align-items:center; justify-content:center;
+      width:34px; height:34px; border-radius:8px;
+      background: rgba(255,255,255,0.03); margin-right:0.5rem;
+      color: rgba(230,238,243,0.9); text-decoration:none;
+    }
+
+    @media (max-width: 640px) {
+      footer#contact .max-w-7xl { grid-template-columns: 1fr; }
+      footer#contact .socials { margin-top: 0.5rem; }
+    }
   </style>
   <script type="module" src="https://unpkg.com/@splinetool/viewer@1.10.81/build/spline-viewer.js"></script>
 
@@ -170,10 +310,10 @@
           faculty workloads — all with a click. Beautiful dashboards, explainable decisions, and real-time updates.</p>
 
         <div class="mt-8 flex flex-wrap gap-4">
-          <a href="#features"
+          <a href="/frontend/login.html"
             class="btn-try inline-flex items-center gap-3 px-5 py-3 rounded-2xl text-white font-semibold"
             style="background:var(--primary);">Try Now</a>
-          <a href="#about"
+          <a href="#features"
             class="btn-learn inline-flex items-center gap-3 px-5 py-3 rounded-2xl border border-gray-200 text-gray-700">Learn
             More</a>
         </div>
@@ -241,27 +381,32 @@
     </section>
 
     <!-- 📞 Footer -->
-    <footer id="contact" class="mt-12 bg-white/90 border-t">
+    <footer id="contact" class="mt-12">
       <div class="max-w-7xl mx-auto px-6 py-12 grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Left: Brand + social -->
         <div>
-          <h4 class="font-bold">About</h4>
-          <p class="mt-2 text-sm text-gray-600">Timelytics is an intelligent timetable and classroom management platform
-            focused on explainability and ease-of-use.</p>
+          <a href="#" class="footer-brand" aria-label="Timelytics logo">Timelytics</a>
+          <p class="footer-sub mt-2">Timelytics is an intelligent timetable and classroom management platform focused on explainability and ease-of-use.</p>
+
+          <p class="mt-6 text-sm footer-sub">© 2025 Timelytics — Built with ❤️ by TANTRIKS.</p>
         </div>
 
+        <!-- Middle: Quick Links -->
         <div>
-          <h4 class="font-bold">Quick Links</h4>
-          <ul class="mt-2 text-sm text-gray-600 space-y-1">
+          <h4 class="font-bold mb-3" style="color:rgba(230,238,243,0.96)">Quick links</h4>
+          <ul class="space-y-2 footer-sub">
             <li><a href="#features" class="hover:underline">Features</a></li>
-            <li><a href="#about" class="hover:underline">About</a></li>
             <li><a href="#contact" class="hover:underline">Contact</a></li>
+            <li><a href="/frontend/login.html" class="hover:underline">Login</a></li>
           </ul>
         </div>
 
+        <!-- Right: Contact -->
         <div>
-          <h4 class="font-bold">Contact</h4>
-          <p class="mt-2 text-sm text-gray-600">hello@timelytics.example</p>
-          <p class="mt-2 text-sm text-gray-600">© 2025 Timelytics — Built with ❤️ for smarter institutions.</p>
+          <div class="mt-6 flex gap-4" style="justify-self:end;">
+            <a href="#" class="footer-sub">Privacy Policy</a>
+            <a href="#" class="footer-sub">Terms of Use</a>
+          </div>
         </div>
       </div>
     </footer>
