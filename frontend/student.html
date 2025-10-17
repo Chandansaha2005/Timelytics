@@ -407,11 +407,7 @@
       <div class="text-xs text-gray-300">Smart Classroom & Timetable Scheduler</div>
     </div>
     <nav class="glass flex items-center gap-2 px-3 py-2">
-      <a href="#dashboard" class="tab-link">Dashboard</a>
-      <a href="#timetable" class="tab-link">Timetable</a>
-      <a href="#reports" class="tab-link">Reports</a>
-      <a href="#notifications" class="tab-link">Notifications</a>
-      <a href="#logout" class="tab-link">Logout</a>
+       <a id="logoutBtn" href="index.html" class="btn-logout" title="Logout">Logout</a>
     </nav>
   </header>
 
@@ -420,7 +416,7 @@
       <div class="hero-card">
         <div class="flex items-center justify-between">
           <div>
-            <h1 class="text-3xl font-extrabold">Welcome, <span id="studentName">Alex</span> 👋</h1>
+            <h1 class="text-3xl font-extrabold">Welcome, <span id="studentName"></span> 👋</h1>
             <p class="text-sm text-gray-300 mt-2">Here’s your personalized academic schedule and insights.</p>
           </div>
           <div class="flex gap-2">
@@ -432,8 +428,6 @@
           <div class="glass rounded-lg p-3">
             <div class="tabs" role="tablist">
               <div class="tab active" data-tab="weekly">Weekly View</div>
-              <div class="tab" data-tab="today">Today</div>
-              <div class="tab" data-tab="electives">Electives</div>
             </div>
 
             <div class="relative" style="min-height:340px">
@@ -478,7 +472,7 @@
       <div class="card glass">
         <div class="text-xs text-gray-300">Attendance Summary</div>
         <div class="mt-3 flex items-center gap-4">
-          <svg width="72" height="72" viewBox="0 0 36 36">
+          <svg width="72" height="72" viewBox="0 0 36 36" aria-hidden="true">
             <path d="M18 2a16 16 0 1016 16A16 16 0 0018 2zm0 28a12 12 0 1112-12 12 12 0 01-12 12z" fill="#0c1220" />
             <circle cx="18" cy="18" r="10" fill="none" stroke="#17384b" stroke-width="2" />
             <circle id="attendanceArc" cx="18" cy="18" r="10" fill="none" stroke="#00BFFF" stroke-width="2"
@@ -487,6 +481,12 @@
           <div>
             <div class="text-sm">Overall</div>
             <div id="attendancePct" class="text-xl font-bold neon-text">0%</div>
+            <!-- static breakdown for clarity -->
+            <div class="mt-2 text-sm text-gray-300">
+              <div>Present: <span id="attendancePresent" class="font-semibold">0</span></div>
+              <div>Absent: <span id="attendanceAbsent" class="font-semibold">0</span></div>
+              <div>Total: <span id="attendanceTotal" class="font-semibold">0</span></div>
+            </div>
           </div>
         </div>
       </div>
@@ -496,26 +496,14 @@
         <div class="mt-3">
           <div class="chart-bar" id="utilChart"></div>
           <div class="mt-3 chart-bar" id="studyChart"></div>
+          <!-- extra static report chart -->
+          <div class="mt-3">
+            <div class="text-xs text-gray-300 mb-2">Weekly Attendance Trend</div>
+            <div id="reportsChart" style="height:120px;"></div>
+          </div>
         </div>
       </div>
     </aside>
-
-    <section id="reports" class="glass panel" style="grid-column:1 / -1">
-      <div class="flex items-center justify-between">
-        <h3 class="font-semibold">Reports & Quick Export</h3>
-        <div class="text-sm text-gray-400">Interactive mini-charts</div>
-      </div>
-      <div class="mt-4 grid grid-cols-2 gap-4">
-        <div class="p-4 glass">
-          <div class="text-xs text-gray-300">Classroom Utilization</div>
-          <div id="barDemo" class="mt-3 chart-bar"></div>
-        </div>
-        <div class="p-4 glass">
-          <div class="text-xs text-gray-300">Weekly Study Hours</div>
-          <div id="hoursDemo" class="mt-3 chart-bar"></div>
-        </div>
-      </div>
-    </section>
   </main>
 
   <div id="tooltip" class="toast" role="status" aria-live="polite"
@@ -533,7 +521,7 @@
   <script>
     // Sample timetable JSON (Mon-Fri, simple periods)
     const timetableJSON = {
-      student: 'Alex S.',
+      student: 'Tantrick',
       week: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
       periods: ['09:00-10:00', '10:15-11:15', '11:30-12:30', '13:30-14:30', '14:45-15:45'],
       slots: [
@@ -625,20 +613,62 @@
     // Highlight current class based on system time
     function parseTimeRange(t) { if (!t) return null; const [a, b] = t.split('-'); return { start: a, end: b }; }
     function toMinutes(hm) { const [h, m] = hm.split(':').map(Number); return h * 60 + m; }
+
+    // highlightCurrent now returns true if an active class was found
     function highlightCurrent() {
-      const now = new Date(); const minutes = now.getHours() * 60 + now.getMinutes();
+      const now = new Date();
+      const minutes = now.getHours() * 60 + now.getMinutes();
+      let found = false;
       document.querySelectorAll('.slot').forEach(s => s.classList.remove('active'));
       document.querySelectorAll('.slot').forEach(s => {
-        const t = s.dataset.time; if (!t) return; const { start, end } = parseTimeRange(t); if (!start) return; const sMin = toMinutes(start); const eMin = toMinutes(end);
-        if (minutes >= sMin && minutes <= eMin) { s.classList.add('active'); const next = document.getElementById('nextClass'); next.textContent = s.querySelector('.font-semibold').textContent; const countdownEl = document.getElementById('countdown'); const secLeft = (eMin - minutes) * 60; startCountdown(secLeft); }
-      })
+        const t = s.dataset.time;
+        if (!t) return;
+        const { start, end } = parseTimeRange(t);
+        if (!start) return;
+        const sMin = toMinutes(start);
+        const eMin = toMinutes(end);
+        if (minutes >= sMin && minutes <= eMin) {
+          found = true;
+          s.classList.add('active');
+          document.getElementById('nextClass').textContent = s.querySelector('.font-semibold').textContent;
+          const secLeft = (eMin - minutes) * 60;
+          startCountdown(secLeft);
+        }
+      });
+      return found;
     }
+
+    // startCountdown clears previous interval and updates #countdown every second
     function startCountdown(seconds) {
-      clearInterval(window.__cd); function fmt(s) { const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60; return [h, m, sec].map(x => String(x).padStart(2, '0')).join(':') }
+      clearInterval(window.__cd);
+      function fmt(s) { const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60; return [h, m, sec].map(x => String(x).padStart(2, '0')).join(':'); }
+      // ensure non-negative
+      seconds = Math.max(0, Math.floor(seconds));
       document.getElementById('countdown').textContent = fmt(seconds);
-      window.__cd = setInterval(() => { seconds--; if (seconds < 0) { clearInterval(window.__cd); highlightCurrent(); } else document.getElementById('countdown').textContent = fmt(seconds); }, 1000);
+      window.__cd = setInterval(() => {
+        seconds--;
+        if (seconds < 0) {
+          clearInterval(window.__cd);
+          // attempt to re-evaluate current class immediately
+          if (!highlightCurrent()) {
+            // if still no active class, restart a 45-minute timer
+            startCountdown(45 * 60);
+            document.getElementById('nextClass').textContent = 'Focus Timer';
+          }
+        } else {
+          document.getElementById('countdown').textContent = fmt(seconds);
+        }
+      }, 1000);
     }
-    highlightCurrent(); setInterval(highlightCurrent, 60000);
+
+    // Initialize: if an active class exists, highlightCurrent will start its countdown.
+    // Otherwise start a 45-minute countdown on the left panel.
+    if (!highlightCurrent()) {
+      document.getElementById('nextClass').textContent = 'Focus Timer';
+      startCountdown(45 * 60); // 45 minutes in seconds
+    }
+    // periodically re-check for active class (every minute)
+    setInterval(highlightCurrent, 60000);
 
     // Tabs & flip animation
     document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => { document.querySelectorAll('.tab').forEach(x => x.classList.remove('active')); t.classList.add('active'); const pane = document.getElementById('flipPane'); if (t.dataset.tab === 'electives') { pane.classList.add('flipped'); } else pane.classList.remove('flipped'); }))
@@ -661,13 +691,28 @@
 
     // Attendance arc update
     function setAttendance(pct) { const arc = document.getElementById('attendanceArc'); const circumference = 2 * Math.PI * 10; const dash = (pct / 100) * circumference; arc.setAttribute('stroke-dasharray', `${dash} ${circumference - dash}`); document.getElementById('attendancePct').textContent = pct + '%'; }
-    setAttendance(92);
-
+    // set static attendance breakdown and percentage
+    function applyAttendanceData({ present, absent }) {
+      const total = (present || 0) + (absent || 0);
+      const pct = total === 0 ? 0 : Math.round((present / total) * 100);
+      setAttendance(pct);
+      document.getElementById('attendancePresent').textContent = present;
+      document.getElementById('attendanceAbsent').textContent = absent;
+      document.getElementById('attendanceTotal').textContent = total;
+      document.getElementById('attendancePct').textContent = pct + '%';
+    }
+    // static sample data
+    applyAttendanceData({ present: 46, absent: 4 }); // shows 92%
+ 
     // Toast notifications
     function showToast(msg, t = 3000) { const el = document.createElement('div'); el.className = 'toast glass'; el.innerHTML = `<div style="font-weight:700;margin-bottom:6px">⚡ Schedule update</div><div style="font-size:13px">${msg}</div>`; document.body.appendChild(el); setTimeout(() => el.style.opacity = 0, t - 400); setTimeout(() => el.remove(), t); }
     // Simulated incoming notification
     setTimeout(() => showToast('Your 10 AM Data Structures class moved to Lab L2.'), 1400);
-
+ 
+    // prepare reports chart (static data)
+    prepareChartCanvas('reportsChart');
+    const reportsChart = makeBarChart(document.querySelector('#reportsChart canvas'), ['Mon','Tue','Wed','Thu','Fri'], [85, 92, 88, 90, 93], ['#FF00FF']);
+    
     // Export buttons (replace html2canvas screenshot approach with data-driven PDF table)
     document.getElementById('exportPdf').addEventListener('click', async (evt) => {
       const btn = evt.currentTarget;
