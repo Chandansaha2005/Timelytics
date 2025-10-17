@@ -386,6 +386,54 @@
       background: linear-gradient(90deg, var(--neon), var(--violet), var(--magenta));
       box-shadow: 0 10px 30px rgba(138, 0, 255, 0.06);
     }
+
+    /* Recent timetables area (admin) */
+    .recent-area {
+      max-width: 1200px;
+      margin: 18px auto 56px;
+      padding: 1rem;
+    }
+
+    .recent-card {
+      padding: 16px;
+      border-radius: 12px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      color: #eef2ff;
+    }
+
+    .recent-card table {
+      width: 100%;
+      border-collapse: collapse;
+      color: #05020a;
+      background: #fff;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .recent-card thead th {
+      text-align: left;
+      padding: 10px 12px;
+      background: #f6f7fb;
+      color: #0b0b0b;
+      font-weight: 700;
+      border-bottom: 1px solid #e6e9ef;
+    }
+
+    .recent-card tbody td {
+      padding: 10px 12px;
+      border-bottom: 1px solid #eee;
+      color: #0b0b0b;
+      font-size: 14px;
+    }
+
+    .recent-empty {
+      padding: 22px;
+      text-align: center;
+      color: rgba(11, 11, 11, 0.6);
+      background: #fff;
+      border-radius: 8px;
+    }
   </style>
 </head>
 
@@ -518,6 +566,20 @@
       </div>
     </article>
   </main>
+
+  <!-- Recent timetables area shown to admin after create -->
+  <section class="recent-area" aria-labelledby="recentTitle">
+    <div class="recent-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <h3 id="recentTitle" style="margin:0;color:#eef2ff">Recently created timetables</h3>
+        <div style="font-size:13px;color:var(--muted)">Shows latest created tables</div>
+      </div>
+
+      <div id="recentContainer">
+        <div class="recent-empty">No timetables yet. Create one using the "Create Timetable" button above.</div>
+      </div>
+    </div>
+  </section>
 
   <!-- Footer -->
   <footer class="site-footer">
@@ -783,6 +845,104 @@
     // accessibility keyboard focus
     document.addEventListener('keyup', e => { if (e.key === 'Tab') document.body.classList.add('user-is-tabbing'); });
 
+    /* ----------------- Admin recent timetables rendering/storage ----------------- */
+    window.adminTimetables = JSON.parse(localStorage.getItem('adminTimetables') || '[]');
+
+    function renderAdminTables() {
+      const container = document.getElementById('recentContainer');
+      if (!window.adminTimetables || window.adminTimetables.length === 0) {
+        container.innerHTML = '<div class="recent-empty">No timetables yet. Create one using the "Create Timetable" button above.</div>';
+        return;
+      }
+
+      // Build a simple table where each subject in a timetable becomes a row
+      const rows = [];
+      window.adminTimetables.forEach(tt => {
+        const date = tt.date || '';
+        const start = tt.collegeStart || '';
+        const duration = Number(tt.duration || 60);
+        // if subjects array exists, map them; otherwise fallback to one row
+        if (Array.isArray(tt.subjects) && tt.subjects.length) {
+          tt.subjects.forEach((s, idx) => {
+            const fac = (tt.faculties && tt.faculties[idx]) ? tt.faculties[idx].name : (tt.faculties && tt.faculties[0] && tt.faculties[0].name) || '';
+            // compute end time as start + duration
+            const [h, m] = (start || '00:00').split(':').map(x => Number(x));
+            const startMin = h * 60 + (m || 0) + (idx * duration); // stagger subjects sequentially
+            const endMin = startMin + duration;
+            const hh1 = String(Math.floor(startMin / 60)).padStart(2, '0'), mm1 = String(startMin % 60).padStart(2, '0');
+            const hh2 = String(Math.floor(endMin / 60)).padStart(2, '0'), mm2 = String(endMin % 60).padStart(2, '0');
+            rows.push({
+              date,
+              time: `${hh1}:${mm1} - ${hh2}:${mm2}`,
+              subject: s.name || s,
+              faculty: fac || '',
+              section: tt.section || '',
+              room: tt.room || '',
+              createdAt: tt._createdAt || ''
+            });
+          });
+        } else {
+          rows.push({
+            date,
+            time: `${start} - ${start}`,
+            subject: tt.subjectName || '',
+            faculty: (tt.faculties && tt.faculties[0] && tt.faculties[0].name) || '',
+            section: tt.section || '',
+            room: tt.room || '',
+            createdAt: tt._createdAt || ''
+          });
+        }
+      });
+
+      // render table (latest first)
+      const thead = `<thead><tr><th>Date</th><th>Time</th><th>Subject</th><th>Faculty</th><th>Section</th><th>Room</th></tr></thead>`;
+      const tbody = '<tbody>' + rows.map(r => `<tr>
+          <td>${escapeHtml(r.date)}</td>
+          <td>${escapeHtml(r.time)}</td>
+          <td>${escapeHtml(r.subject)}</td>
+          <td>${escapeHtml(r.faculty)}</td>
+          <td>${escapeHtml(r.section)}</td>
+          <td>${escapeHtml(r.room)}</td>
+        </tr>`).join('') + '</tbody>';
+
+      container.innerHTML = `<table>${thead}${tbody}</table>`;
+    }
+
+    // reuse escape helper if present, otherwise define
+    function escapeHtml(s) { return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+
+    // render on load
+    renderAdminTables();
+
+    // When creating a timetable, push to adminTimetables and re-render (patch create handler)
+    // Locate create submit handler defined earlier; we update the success branch to store the created table
+    // To ensure compatibility, we monkey-patch the api POST result handling by wrapping openCreateModal's submit success.
+    (function patchCreateStore() {
+      // original create handler created payload and called api('/api/timetables'...)
+      // We'll override api to also store the payload when path POST /api/timetables is called from admin page.
+      const origApi = window.api;
+      window.api = async function (path, opts) {
+        const resp = await origApi(path, opts);
+        try {
+          if (path.startsWith('/api/timetables') && opts && opts.method === 'POST') {
+            // attempt to parse body (it was JSON.stringify(payload))
+            let body = {};
+            try { body = JSON.parse(opts.body || '{}'); } catch (e) { }
+            const id = (resp && resp.data && resp.data.id) ? resp.data.id : 'tt_' + Date.now();
+            const stored = Object.assign({}, body, { id, _createdAt: new Date().toISOString() });
+            // normalize subjects/faculties arrays if not present
+            if (!Array.isArray(stored.subjects) && stored.subjectName) stored.subjects = [{ name: stored.subjectName }];
+            if (!Array.isArray(stored.faculties) && stored.faculty) stored.faculties = [{ name: stored.faculty }];
+            // add to the top and persist
+            window.adminTimetables.unshift(stored);
+            try { localStorage.setItem('adminTimetables', JSON.stringify(window.adminTimetables)); } catch (e) { }
+            // re-render recent area
+            renderAdminTables();
+          }
+        } catch (e) { console.error('Failed to persist created timetable', e); }
+        return resp;
+      };
+    })();
   </script>
 </body>
 

@@ -59,20 +59,68 @@
     .hover-tilt:hover{ transform: translateY(-6px) scale(1.02); box-shadow: 0 18px 50px rgba(0,0,0,0.55); }
 
     /* ---------- Navbar sausage (thinner) ---------- */
-    header.topbar{ position:fixed; top:8px; left:0; right:0; display:flex; justify-content:center; z-index:60; padding:0 0.5rem; pointer-events:none; }
-    .sausage {
-      pointer-events:auto;
-      width:min(1150px, calc(100% - 1rem));
-      display:flex; gap:0.6rem; align-items:center;
-      padding:.35rem .6rem;                     /* reduced padding -> thinner bar */
-      border-radius:9999px;
-      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.006));
-      border:1px solid rgba(255,255,255,0.035);
-      backdrop-filter: blur(8px);
+    header.topbar {
+      position: fixed;
+      top: 10px;
+      left: 0;
+      right: 0;
+      z-index: 60;
+      display: flex;
+      justify-content: center;
+      padding: 0 1rem;
     }
-    .brand { font-weight:800; font-size:1rem; } /* slightly smaller brand to save vertical space */
-    .search { min-width:200px; max-width:360px; padding:.25rem .45rem; } /* smaller search */
-    .view-toggle button{ padding:.28rem .45rem; border-radius:6px; font-size:.88rem; }
+    .sausage {
+      width: min(1200px, calc(100% - 2rem));
+      display: flex;
+      align-items: center;
+      justify-content: space-between; /* brand left, controls right */
+      gap: 1rem;
+      padding: .42rem .8rem;
+      border-radius: 9999px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border: 1px solid rgba(255,255,255,0.04);
+      backdrop-filter: blur(8px);
+      box-shadow: 0 8px 30px rgba(2,6,23,0.45);
+    }
+    .brand { font-weight:800; font-size:1.05rem; background: linear-gradient(90deg,var(--neon),var(--violet),var(--magenta)); -webkit-background-clip:text; color:transparent; text-decoration:none; }
+
+    /* Right-side controls: timer, notifications, logout */
+    .right-actions { display:flex; gap:0.75rem; align-items:center; }
+    .timer-pill {
+      background: rgba(255,255,255,0.06);
+      color: #fff;
+      padding: .45rem .7rem;
+      border-radius: 10px;
+      font-weight:700;
+      min-width:88px;
+      text-align:center;
+    }
+    .notif-btn {
+      position: relative;
+      background: transparent;
+      color: #fff;
+      padding: .45rem .6rem;
+      border-radius: 10px;
+      font-size:18px;
+      border: none;
+      cursor: pointer;
+    }
+    .notif-badge {
+      position:absolute; right:4px; top:4px;
+      background:#FF3B3B; color:#fff; font-size:11px; padding:2px 6px; border-radius:999px; font-weight:800;
+    }
+    .btn-logout {
+      background: rgba(255,255,255,0.06);
+      color: #fff;
+      padding: .48rem .9rem;
+      border-radius: 10px;
+      font-weight:800;
+      border: 1px solid rgba(255,255,255,0.08);
+      cursor:pointer;
+    }
+
+    /* hide removed items if present */
+    .nav-search, .nav-week, .nav-guest, .nav-signin, .search-box, .week-label { display:none !important; }
 
     /* ---------- Layout ---------- */
     main.container{ padding-top:88px; max-width:1200px; margin:0 auto; padding-left:1rem; padding-right:1rem; }
@@ -141,38 +189,20 @@
 
   <!-- Top sausage navbar -->
   <header class="topbar" role="banner">
-    <div class="sausage glass neon-edge" role="navigation" aria-label="Main navigation">
-      <div class="flex items-center gap-4">
-        <a href="#" class="brand" aria-label="Timelytics home">Timelytics</a>
-
+    <div class="sausage" role="navigation" aria-label="Main">
+      <div class="flex items-center gap-3">
+        <a href="index.html" class="brand" aria-label="Timelytics Home">Timelytics</a>
       </div>
 
-      <!-- search + view toggles + actions -->
-      <div class="flex items-center gap-3 nav-actions">
-        <div class="search" role="search" aria-label="Quick search">
-          <svg class="w-4 h-4 text-white/80" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="11" cy="11" r="6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          <input class="bg-transparent outline-none placeholder:opacity-60 text-sm w-full" placeholder="Search students, classes, rooms" aria-label="Search" />
+      <div class="right-actions" aria-hidden="false">
+        <div class="timer-pill" id="navTimer" title="Countdown">
+          <div style="font-size:12px;opacity:0.9">Timer</div>
+          <div id="countdown" style="font-size:14px;font-weight:900">45:00</div>
         </div>
 
-        <!-- View toggle: only Week view kept (monthly/yearly removed) -->
-        <div class="view-toggle" role="tablist" aria-label="View toggle">
-          <button class="active" data-view="week" role="tab" aria-selected="true">Week</button>
-        </div>
+        <button id="notifBtn" class="notif-btn" aria-label="Notifications" title="Notifications">🔔<span class="notif-badge" id="notifCount">3</span></button>
 
-        <div class="flex items-center gap-3">
-          <div class="text-sm text-white/90" id="clock" aria-live="polite">--:--:--</div>
-          <button class="pill" aria-label="Notifications" title="Notifications">🔔 <span id="notifBadge" class="ml-1 text-xs bg-red-500 rounded-full px-1">3</span></button>
-
-          <div class="flex items-center gap-2" aria-haspopup="true">
-            <!-- Firebase auth button (will toggle sign-in/out) -->
-            <button id="firebaseAuthBtn" class="pill">Sign in</button>
-
-            <button id="profileBtn" class="flex items-center gap-2">
-              <div id="profileAvatar" class="w-8 h-8 rounded-full bg-gradient-to-tr from-[#6a00f4] to-[#00bfff] flex items-center justify-center text-sm font-bold">DS</div>
-              <div id="profileName" class="text-sm text-white/90">Dr. Sharma</div>
-            </button>
-          </div>
-        </div>
+        <button id="logoutBtn" class="btn-logout" aria-label="Logout">Logout</button>
       </div>
     </div>
   </header>
@@ -422,464 +452,26 @@
 
   <!-- ---------------- JS: interactions, mock API calls, accessibility shortcuts ---------------- -->
   <script>
-    // Utility: mock fetch (replace with real API calls)
-    async function api(path, opts){
-      // placeholder to illustrate integration — replace with fetch(...) to backend
-      console.debug('API', path, opts||'GET');
-      return new Promise(r => setTimeout(()=> r({ ok:true, data: window.__mockData__ || {} }), 500));
-    }
+    // navbar behavior: hide removed elements, logout redirect, demo notif handler
+    (function(){
+      // Remove any leftover search/week/signin/guest nodes if present
+      document.querySelectorAll('.nav-search, .nav-week, .nav-guest, .nav-signin, .search-box, .week-label').forEach(n=>n.remove());
 
-    // Clock & realtime updates
-    function startClock(){
-      const el = document.getElementById('clock');
-      function tick(){ const now = new Date(); el.textContent = now.toLocaleTimeString(); }
-      tick(); setInterval(tick, 1000);
-    }
-    startClock();
-
-    // Populate quick stats (from backend) - removed setting of student count display
-    (async function loadStats(){
-      // mock API usage
-      const res = await api('/api/faculty/profile');
-      // demo data
-      const demo = {
-        faculty:{name:'Dr. Sharma'},
-        analytics:{totalClasses:60, averageAttendance:88.5, totalStudents:150, classesCompleted:45, upcomingClasses:3}
-      };
-      document.getElementById('statToday').textContent = demo.analytics.upcomingClasses || 0;
-      // removed: document.getElementById('statStudents').textContent = demo.analytics.totalStudents || 0;
-      document.getElementById('statSemester').textContent = demo.analytics.totalClasses || 0;
-      document.getElementById('statAttendance').textContent = Math.round(demo.analytics.averageAttendance) + '%';
-    })();
-
-    // Timetable population example (replace with schedule endpoint)
-    (async function populateSchedule(){
-      const schedule = [
-        {id:'class_001', subject:'Calculus', batch:'Section A', room:'R101', capacity:50, enrolledCount:45, timeStart:'09:00', timeEnd:'10:00', day:'Monday', type:'Theory', isOnline:false, status:'scheduled'},
-        {id:'class_002', subject:'Algorithms', batch:'Section B', room:'Lab 2', capacity:40, enrolledCount:38, timeStart:'10:00', timeEnd:'11:00', day:'Tuesday', type:'Lab', isOnline:false, status:'scheduled'},
-        {id:'class_003', subject:'DBMS', batch:'Section A', room:'R102', capacity:45, enrolledCount:40, timeStart:'11:00', timeEnd:'12:00', day:'Wednesday', type:'Theory', isOnline:true, meetingLink:'https://meet.example/abc', status:'completed'}
-      ];
-
-      // map slots
-      const slots = Array.from(document.querySelectorAll('.tt-slot'));
-      slots.forEach(s => {
-        const day = s.dataset.day;
-        const start = s.dataset.start;
-        const match = schedule.find(it=>it.day===day && it.timeStart===start);
-        if(match){
-          s.dataset.classId = match.id;
-          s.innerHTML = `
-            <div class="font-semibold">${match.subject}</div>
-            <div class="meta">${match.batch} • ${match.enrolledCount}/${match.capacity} • ${match.room}</div>
-            <div class="occupancy"><i style="width:${Math.round((match.enrolledCount/match.capacity)*100)}%"></i></div>
-            <div class="slot-actions">
-              <button class="pill open-detail" title="View">View</button>
-            </div>
-          `;
-          s.classList.add(match.status==='completed'?'slot-completed':'slot-upcoming');
-          if(match.status==='cancelled') s.classList.add('slot-cancelled');
-          // interactions
-          s.addEventListener('click', ()=> openClassDetail(match));
-          s.addEventListener('contextmenu', (ev)=>{ ev.preventDefault(); openQuickMenu(match, ev.clientX, ev.clientY); });
-        }
-      });
-    })();
-
-    // Open class detail modal
-    function openClassDetail(cls){
-      showModal(`
-        <div class="glass neon-edge p-4">
-          <div class="flex justify-between items-start">
-            <div>
-              <h3 class="text-lg font-bold">${cls.subject} • ${cls.batch}</h3>
-              <div class="text-sm text-white/70">${cls.timeStart} - ${cls.timeEnd} • ${cls.room} • ${cls.type}</div>
-            </div>
-            <div class="text-sm text-white/80">Size: ${cls.enrolledCount}/${cls.capacity}</div>
-          </div>
-          <div class="mt-3">
-            <button class="pill" id="btnMarkAttendance">Mark Attendance</button>
-            <button class="pill" id="btnNotes">Update Notes</button>
-            <button class="pill" id="btnReschedule">Reschedule</button>
-            <button class="pill" id="btnViewStudents">View Students</button>
-          </div>
-        </div>
-      `);
-      // attach handlers (demo)
-      setTimeout(()=>{
-        document.getElementById('btnMarkAttendance')?.addEventListener('click', ()=> openAttendanceModal(cls));
-        document.getElementById('btnReschedule')?.addEventListener('click', ()=> openRescheduleModal(cls));
-      },50);
-    }
-
-    // Quick actions menu (right-click)
-    function openQuickMenu(cls, x, y){
-      const menu = document.createElement('div');
-      menu.className = 'glass p-2 neon-edge';
-      menu.style.position = 'fixed'; menu.style.left = x + 'px'; menu.style.top = y + 'px'; menu.style.zIndex = 90;
-      menu.innerHTML = `<div class="text-sm">Actions for ${cls.subject}</div><div class="mt-2 space-y-1"><button class="pill">Mark Attendance</button><button class="pill">Reschedule</button><button class="pill">View Students</button></div>`;
-      document.body.appendChild(menu);
-      function cleanup(){ menu.remove(); document.removeEventListener('click', cleanup); }
-      setTimeout(()=> document.addEventListener('click', cleanup), 50);
-    }
-
-    // Modal helper
-    function showModal(html){
-      const root = document.getElementById('modalRoot');
-      root.innerHTML = `<div class="modal-backdrop" role="dialog" aria-modal="true"><div class="modal glass neon-edge">${html}<div class="mt-3 text-right"><button id="modalClose" class="pill">Close</button></div></div></div>`;
-      root.setAttribute('aria-hidden','false');
-      document.getElementById('modalClose')?.addEventListener('click', closeModal);
-    }
-    function closeModal(){ const root=document.getElementById('modalRoot'); root.innerHTML=''; root.setAttribute('aria-hidden','true'); }
-
-    // Attendance modal
-    function openAttendanceModal(cls){
-      // demo: simple roster skeleton
-      const roster = Array.from({length:cls.enrolledCount}).map((_,i)=>({id:'s'+(100+i),name:'Student '+(i+1),status:'present'})).slice(0,12);
-      showModal(`
-        <div class="glass p-3">
-          <h3 class="font-bold">${cls.subject} — Attendance</h3>
-          <div class="text-xs text-white/70">Mark present/absent (space to toggle)</div>
-          <div class="mt-3 space-y-2">
-            ${roster.map(s=>`<div class="flex items-center gap-2 p-2 bg-white/2 rounded"><input type="checkbox" data-student="${s.id}" checked/> <div class="flex-1">${s.name}</div></div>`).join('')}
-          </div>
-          <div class="mt-3 text-right"><button id="saveAttendance" class="pill">Save & Notify</button></div>
-        </div>
-      `);
-      document.getElementById('saveAttendance')?.addEventListener('click', ()=>{
-        // collect and mock POST
-        const checked = Array.from(document.querySelectorAll('[data-student]')).filter(i=>i.querySelector('input').checked).length;
-        alert('Saved attendance. Present: '+checked);
-        closeModal();
-      });
-      // keyboard: space toggles focused checkbox
-      document.addEventListener('keydown', function kb(e){
-        if(e.key==='Escape') { closeModal(); document.removeEventListener('keydown', kb); }
-      });
-    }
-
-    // Reschedule modal (simple)
-    function openRescheduleModal(cls){
-      showModal(`
-        <div class="glass p-3">
-          <h3 class="font-bold">Reschedule ${cls.subject}</h3>
-          <div class="mt-2 text-sm text-white/70">Select new day/time (shows available slots)</div>
-          <div class="mt-3 grid grid-cols-2 gap-2">
-            <button class="pill">Mon 14:00</button><button class="pill">Tue 09:00</button><button class="pill">Wed 11:00</button><button class="pill">Thu 16:00</button>
-          </div>
-          <div class="mt-3"><label class="text-xs text-white/70">Reason</label><textarea class="w-full mt-1 p-2 rounded bg-white/2" rows="2"></textarea></div>
-          <div class="mt-3 text-right"><button id="confirmRes" class="pill">Confirm</button></div>
-        </div>
-      `);
-      document.getElementById('confirmRes')?.addEventListener('click', ()=> { alert('Rescheduled (demo)'); closeModal(); });
-    }
-
-    // Demo: time until next class countdown (updates every second)
-    (function countdownNext(){
-      const el = document.getElementById('timeUntilNext');
-      let next = Date.now() + (29*60+12)*1000; // demo value
-      setInterval(()=>{
-        const diff = Math.max(0, next - Date.now());
-        const h = Math.floor(diff/3600000); const m = Math.floor(diff%3600000/60000); const s = Math.floor(diff%60000/1000);
-        el.textContent = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-      },1000);
-    })();
-
-    // Keyboard shortcuts & accessibility
-    document.addEventListener('keydown', (e)=>{
-      // A => open attendance quick modal
-      if(e.key.toLowerCase()==='a' && !e.metaKey && !e.ctrlKey){ e.preventDefault(); document.getElementById('actMark').click(); }
-      // N => new note
-      if(e.key.toLowerCase()==='n'){ document.getElementById('actAnnounce').click(); }
-      // / focus search
-      if(e.key==='/' ){ e.preventDefault(); document.querySelector('.search input').focus(); }
-    });
-
-    // Wire quick action buttons (demo)
-    document.getElementById('actMark').addEventListener('click', ()=> openAttendanceModal({subject:'Quick Mark', batch:'All', enrolledCount:12, capacity:12, timeStart:'--:--', timeEnd:'--:--', room:'--', type:'Theory'}));
-    document.getElementById('actUpload').addEventListener('click', ()=> showModal('<div class="glass p-3"><h3>Upload Notes</h3><div class="mt-3 p-4 border-dashed border rounded bg-white/2 text-center">Drag & drop files here</div><div class="mt-3 text-right"><button class="pill" onclick="closeModal()">Close</button></div></div>'));
-    // Replace announcement button with Adjust Class flow
-    document.getElementById('actAnnounce').addEventListener('click', openAdjustClassModal);
-    document.getElementById('actResources').addEventListener('click', ()=> showModal('<div class="glass p-3">Classroom resources (demo)</div>'));
-
-    /* ===== Adjust Class: modal + logic =====
-       - Lists faculty classes (reads from timetable DOM)
-       - Allows selecting one class and delaying it by X minutes
-       - If previous teacher still in room (ongoing class) user can delay
-       - Optionally cascade shifts to subsequent classes in same room
-    */
-    function toMinutes(hm){ const [h,m]=hm.split(':').map(Number); return h*60 + m; }
-    function fromMinutes(min){ const hh = String(Math.floor(min/60)).padStart(2,'0'); const mm = String(min%60).padStart(2,'0'); return hh+':'+mm; }
-
-    function getClassesFromDOM(){
-      // collect class objects from timetable slots that were populated earlier
-      const nodes = Array.from(document.querySelectorAll('.tt-slot[data-class-id]'));
-      return nodes.map(n=>{
-        return {
-          id: n.dataset.classId,
-          subject: (n.querySelector('.font-semibold')?.textContent || '').trim(),
-          room: n.querySelector('.meta') ? (n.querySelector('.meta').textContent.split('•').pop()||'').trim() : (n.dataset.room || ''),
-          day: n.dataset.day,
-          start: n.dataset.start || (n.querySelector('.meta')?.textContent.match(/\d{2}:\d{2}/)?.[0] || ''),
-          end: n.dataset.end || '', // may be absent if not set
-          node: n
-        };
-      }).filter(c=>c.id);
-    }
-
-    async function openAdjustClassModal(){
-      const classes = getClassesFromDOM();
-      if(classes.length===0) return showModal(`<div class="glass p-4"><h3>No classes found</h3><p class="text-xs text-white/70">Your timetable appears empty.</p><div class="mt-3 text-right"><button class="pill" onclick="closeModal()">Close</button></div></div>`);
-
-      // build options
-      const opts = classes.map(c=>`<label class="block p-2 rounded hover:bg-white/3"><input type="radio" name="adjClass" value="${c.id}" ${classes[0].id===c.id?'checked':''}/> <span class="ml-2 font-semibold">${c.subject || '—'} • ${c.day} • ${c.start || '—'}</span><div class="text-xs text-white/60 mt-1">Room: ${c.room || '—'}</div></label>`).join('');
-
-      showModal(`
-        <div class="glass p-4">
-          <h3 class="font-bold">Adjust Class Time</h3>
-          <p class="text-xs text-white/70 mt-1">Choose one of your classes. If the previous teacher hasn't left the room yet you may delay your start. You can cascade shifts to later classes in the same room.</p>
-          <div class="mt-3 space-y-2">${opts}</div>
-
-          <div class="mt-3 grid grid-cols-2 gap-2">
-            <label class="block"><div class="text-xs text-white/70">Delay minutes</div><input id="adjMinutes" type="number" min="1" max="120" value="10" class="p-2 rounded bg-white/3" /></label>
-            <label class="block"><div class="text-xs text-white/70">Cascade conflicts</div><input id="adjCascade" type="checkbox" class="mt-3" /></label>
-          </div>
-
-          <div class="mt-3 text-sm" id="adjustPreview"><em class="text-white/70">Preview will show affected classes here.</em></div>
-
-          <div class="mt-4 text-right">
-            <button id="btnAdjPreview" class="pill">Preview</button>
-            <button id="btnAdjConfirm" class="pill">Apply</button>
-            <button class="pill" onclick="closeModal()">Cancel</button>
-          </div>
-        </div>
-      `);
-
-      document.getElementById('btnAdjPreview').addEventListener('click', ()=> previewAdjust(classes));
-      document.getElementById('btnAdjConfirm').addEventListener('click', ()=> confirmAdjust(classes));
-    }
-
-    function previewAdjust(classes){
-      const sel = document.querySelector('input[name="adjClass"]:checked');
-      if(!sel) return alert('Select a class to adjust');
-      const id = sel.value;
-      const minutes = parseInt(document.getElementById('adjMinutes').value || '0',10);
-      const cascade = document.getElementById('adjCascade').checked;
-      const cls = classes.find(c=>c.id===id);
-      if(!cls) return;
-
-      // compute duration from DOM if possible (attempt to read data-end or assume 60)
-      const startMin = toMinutes(cls.start || '00:00');
-      let dur = 60;
-      // try infer end from node.dataset.end or .meta text (simple regex)
-      const meta = cls.node?.querySelector('.meta')?.textContent || '';
-      const times = meta.match(/(\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})/);
-      if(times){ dur = toMinutes(times[2]) - toMinutes(times[1]); }
-      const newStart = startMin + minutes;
-      const newEnd = newStart + dur;
-
-      // find conflicts in same room whose start < newEnd and id != cls.id
-      const conflicts = classes.filter(c=>{
-        if(c.room !== cls.room) return false;
-        if(c.id === cls.id) return false;
-        const s = toMinutes(c.start || '00:00');
-        // assume duration 60 for others if not parseable
-        let d = 60;
-        const tm = c.node?.querySelector('.meta')?.textContent || '';
-        const tmatch = tm.match(/(\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})/);
-        if(tmatch) d = toMinutes(tmatch[2]) - toMinutes(tmatch[1]);
-        const e = s + d;
-        return (s < newEnd && e > newStart);
-      });
-
-      const prevOngoing = classes.find(c=>{
-        if(c.room !== cls.room) return false;
-        const s = toMinutes(c.start || '00:00');
-        let d = 60;
-        const tm = c.node?.querySelector('.meta')?.textContent || '';
-        const tmatch = tm.match(/(\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})/);
-        if(tmatch) d = toMinutes(tmatch[2]) - toMinutes(tmatch[1]);
-        const e = s + d;
-        const nowMin = (new Date()).getHours()*60 + (new Date()).getMinutes();
-        // previous class considered ongoing if it started before now and ends after now
-        return (s <= nowMin && e > nowMin && e > s && c.id !== cls.id && e <= startMin + 60); // close previous in time
-      });
-
-      const previewEl = document.getElementById('adjustPreview');
-      previewEl.innerHTML = `<div class="text-sm text-white/80">Selected: <strong>${cls.subject}</strong> — ${cls.start} → ${fromMinutes(newStart)} (delay ${minutes}m)</div>`;
-      if(prevOngoing) previewEl.innerHTML += `<div class="mt-2 text-xs text-yellow-300">Previous class (${prevOngoing.subject}) appears to be still ongoing in ${cls.room} — delaying is allowed.</div>`;
-      if(conflicts.length){
-        previewEl.innerHTML += `<div class="mt-2 text-xs">Conflicts (${conflicts.length}):<ul class="ml-4">${conflicts.map(c=>`<li>${c.subject} • ${c.start}</li>`).join('')}</ul></div>`;
-        if(!cascade) previewEl.innerHTML += `<div class="mt-2 text-xs text-white/70">Check "Cascade conflicts" to shift these classes automatically.</div>`;
-      } else {
-        previewEl.innerHTML += `<div class="mt-2 text-xs text-green-300">No direct conflicts in the same room.</div>`;
-      }
-    }
-
-    async function confirmAdjust(classes){
-      const sel = document.querySelector('input[name="adjClass"]:checked');
-      if(!sel) return alert('Select a class to adjust');
-      const id = sel.value;
-      const minutes = parseInt(document.getElementById('adjMinutes').value || '0',10);
-      const cascade = document.getElementById('adjCascade').checked;
-      const cls = classes.find(c=>c.id===id);
-      if(!cls) return;
-
-      // duration inference as in preview
-      const startMin = toMinutes(cls.start || '00:00');
-      let dur = 60;
-      const meta = cls.node?.querySelector('.meta')?.textContent || '';
-      const times = meta.match(/(\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})/);
-      if(times){ dur = toMinutes(times[2]) - toMinutes(times[1]); }
-
-      // re-check previous ongoing condition: if previous still ongoing allow delay, else allow too but warn
-      const nowMin = (new Date()).getHours()*60 + (new Date()).getMinutes();
-      const prevOngoing = classes.find(c=>{
-        if(c.room !== cls.room) return false;
-        const s = toMinutes(c.start || '00:00');
-        let d = 60;
-        const tm = c.node?.querySelector('.meta')?.textContent || '';
-        const tmatch = tm.match(/(\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})/);
-        if(tmatch) d = toMinutes(tmatch[2]) - toMinutes(tmatch[1]);
-        const e = s + d;
-        return (s <= nowMin && e > nowMin && c.id !== cls.id);
-      });
-
-      if(!prevOngoing && minutes>30 && !confirm('You are delaying beyond 30 minutes while no ongoing previous class detected. Proceed?')) return;
-
-      const changes = [];
-      // apply delay to selected
-      const newStart = startMin + minutes;
-      const newEnd = newStart + dur;
-      changes.push({ id: cls.id, newStart: fromMinutes(newStart), newEnd: fromMinutes(newEnd) });
-
-      // find subsequent classes in same room and shift if cascade
-      let affected = [];
-      const later = classes.filter(c=> c.room===cls.room && toMinutes(c.start || '00:00') >= startMin && c.id!==cls.id)
-                           .sort((a,b)=> toMinutes(a.start)-toMinutes(b.start));
-      if(cascade && later.length){
-        let cursor = newEnd;
-        for(const l of later){
-          // infer duration
-          let ld = 60;
-          const lt = l.node?.querySelector('.meta')?.textContent || '';
-          const lm = lt.match(/(\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})/);
-          if(lm) ld = toMinutes(lm[2]) - toMinutes(lm[1]);
-          const lNewStart = Math.max(cursor, toMinutes(l.start||'00:00'));
-          const lNewEnd = lNewStart + ld;
-          changes.push({ id: l.id, newStart: fromMinutes(lNewStart), newEnd: fromMinutes(lNewEnd) });
-          cursor = lNewEnd;
-          affected.push(l);
-        }
-      } else {
-        // if conflicts exist and no cascade, warn user
-        const conflicts = later.filter(c=> {
-          let ld = 60;
-          const lt = c.node?.querySelector('.meta')?.textContent || '';
-          const lm = lt.match(/(\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})/);
-          if(lm) ld = toMinutes(lm[2]) - toMinutes(lm[1]);
-          return toMinutes(c.start || '00:00') < newEnd;
+      const logout = document.getElementById('logoutBtn');
+      if(logout){
+        logout.addEventListener('click', ()=>{
+          try{ localStorage.removeItem('authToken'); sessionStorage.removeItem('authToken'); }catch(e){}
+          window.location.replace('index.html');
         });
-        if(conflicts.length && !confirm(`There are ${conflicts.length} conflicting classes later. Enable cascade to shift them automatically or cancel.`)) return;
       }
 
-      // send to backend (demo)
-      try{
-        const payload = { faculty: 'me', changes, cascade };
-        const resp = await api('/api/faculty/reschedule', { method:'POST', body: JSON.stringify(payload) });
-        if(resp && resp.ok){
-          alert('Reschedule applied (demo). Changes will propagate.');
-          // optimistic UI update: adjust DOM times for changed classes
-          for(const ch of changes){
-            const node = document.querySelector(`.tt-slot[data-class-id="${ch.id}"]`);
-            if(node){
-              // update meta text if present
-              const metaEl = node.querySelector('.meta');
-              if(metaEl){
-                // replace first time occurrence
-                metaEl.textContent = metaEl.textContent.replace(/\d{2}:\d{2}\s*-\s*\d{2}:\d{2}/, `${ch.newStart} - ${ch.newEnd}`);
-              }
-              node.dataset.start = ch.newStart;
-              node.dataset.end = ch.newEnd;
-            }
-          }
-          closeModal();
-        } else {
-          alert('Failed to apply reschedule.');
-        }
-      }catch(e){ console.error(e); alert('Error applying schedule change'); }
-    }
-    
-  </script>
-  <!-- Firebase client: initialize and sign-in handler -->
-  <script type="module">
-    // Firebase client SDK (module) - use the config you provided
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+      const nb = document.getElementById('notifBtn');
+      if(nb) nb.addEventListener('click', ()=> { /* open notifications panel */ alert('Notifications (demo)'); });
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyCKicsW6Y80Nz0rAoLbhiBXk_oefil1g-0",
-      authDomain: "timelytics-sigma.firebaseapp.com",
-      projectId: "timelytics-sigma",
-      storageBucket: "timelytics-sigma.firebasestorage.app",
-      messagingSenderId: "1040003628177",
-      appId: "1:1040003628177:web:d2cf433c8853e699c59330",
-      measurementId: "G-6ZWFYX2JYS"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const provider = new GoogleAuthProvider();
-
-    const authBtn = document.getElementById('firebaseAuthBtn');
-    const profileName = document.getElementById('profileName');
-    const profileAvatar = document.getElementById('profileAvatar');
-
-    async function sendIdTokenToBackend(idToken){
-      try{
-        const res = await fetch('/api/auth/me-firebase', {
-          method: 'GET',
-          headers: { 'Authorization': 'Bearer '+idToken }
-        });
-        if(!res.ok) throw new Error('Backend rejected token');
-        const data = await res.json();
-        console.debug('Backend me-firebase:', data);
-        if(data.user){
-          profileName.textContent = data.user.name || data.user.email || 'Faculty';
-          // avatar initials
-          const initials = (data.user.name || data.user.email || 'F').split(' ').map(s=>s[0]).slice(0,2).join('').toUpperCase();
-          profileAvatar.textContent = initials;
-        }
-      }catch(e){
-        console.warn('Failed to call backend with Firebase token', e);
-        alert('Sign-in succeeded but backend rejected token. Check backend logs.');
-      }
-    }
-
-    onAuthStateChanged(auth, async user => {
-      if(user){
-        authBtn.textContent = 'Sign out';
-        const token = await user.getIdToken();
-        await sendIdTokenToBackend(token);
-      } else {
-        authBtn.textContent = 'Sign in';
-        profileName.textContent = 'Guest';
-        profileAvatar.textContent = 'G';
-      }
-    });
-
-    authBtn.addEventListener('click', async ()=>{
-      const user = auth.currentUser;
-      if(user){
-        await signOut(auth);
-        return;
-      }
-      try{
-        await signInWithPopup(auth, provider);
-      }catch(e){
-        console.error('Firebase sign-in failed', e);
-        alert('Sign-in failed: '+e.message);
-      }
-    });
+      // ensure countdown element exists and is initialized
+      const cdEl = document.getElementById('countdown');
+      if(cdEl && !cdEl.textContent.trim()) cdEl.textContent = '45:00';
+    })();
   </script>
 </body>
 </html>

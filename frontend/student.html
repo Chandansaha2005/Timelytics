@@ -411,6 +411,67 @@
       background: linear-gradient(90deg, var(--neon), var(--violet), var(--magenta));
       box-shadow: 0 10px 30px rgba(138, 0, 255, 0.06);
     }
+
+    /* Resources card below next class timer */
+    .resources-card {
+      margin-top: 16px;
+      padding: 12px;
+      border-radius: 10px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.08));
+      border: 1px solid rgba(255,255,255,0.04);
+      backdrop-filter: blur(6px);
+      color: #eef2ff;
+    }
+
+    .resources-card h4 {
+      font-weight: 800;
+      margin: 0 0 8px 0;
+      color: #fff;
+    }
+
+    .resource-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 8px;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.01);
+    }
+
+    .resource-meta {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .resource-name {
+      font-weight: 700;
+      color: #fff;
+      font-size: 0.95rem;
+    }
+
+    .resource-sub {
+      font-size: 12px;
+      color: rgba(230,238,243,0.72);
+    }
+
+    .resource-actions button {
+      background: linear-gradient(90deg,var(--neon),var(--violet));
+      color: #05020a;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .resource-empty {
+      color: rgba(230,238,243,0.6);
+      font-size: 0.95rem;
+      padding: 10px;
+      text-align: center;
+    }
   </style>
 </head>
 
@@ -518,6 +579,15 @@
             <div class="text-xs text-gray-300 mb-2">Weekly Attendance Trend</div>
             <div id="reportsChart" style="height:120px;"></div>
           </div>
+        </div>
+      </div>
+
+      <!-- Resources card: students can download files uploaded by faculty -->
+      <div class="card glass resources-card" aria-labelledby="resTitle">
+        <h4 id="resTitle">Class Resources</h4>
+        <div id="resourcesList" class="space-y-2" aria-live="polite">
+          <!-- populated by JS -->
+          <div class="resource-empty">Loading resources…</div>
         </div>
       </div>
     </aside>
@@ -874,6 +944,66 @@
 
     // Smooth nav scrolling
     document.querySelectorAll('nav a').forEach(a => a.addEventListener('click', (e) => { e.preventDefault(); const id = a.getAttribute('href').slice(1); const el = document.getElementById(id); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }));
+
+    // Static sample resources (replace with real API fetch)
+    const sampleResources = [
+      { id: 'r1', name: 'Lecture 01 - Introduction.pdf', desc: 'Slides + notes', filename: 'Lecture01.pdf', contentType: 'application/pdf' },
+      { id: 'r2', name: 'Assignment 1.docx', desc: 'Submission doc', filename: 'Assignment1.docx', contentType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' },
+      { id: 'r3', name: 'Lab Dataset CSV', desc: 'Sample data for lab', filename: 'dataset.csv', contentType: 'text/csv' }
+    ];
+
+    // Render resources into the card
+    function renderResources(list = []) {
+      const container = document.getElementById('resourcesList');
+      container.innerHTML = '';
+      if(!list || list.length === 0) {
+        container.innerHTML = '<div class="resource-empty">No resources uploaded yet.</div>';
+        return;
+      }
+      list.forEach(res => {
+        const row = document.createElement('div');
+        row.className = 'resource-row';
+        row.innerHTML = `
+          <div class="resource-meta">
+            <div class="w-10 h-10 rounded-md flex items-center justify-center" style="background:linear-gradient(90deg,var(--neon),var(--violet)); color:#05020a; font-weight:800;">📄</div>
+            <div>
+              <div class="resource-name">${escapeHtml(res.name)}</div>
+              <div class="resource-sub">${escapeHtml(res.desc || res.filename)}</div>
+            </div>
+          </div>
+          <div class="resource-actions">
+            <button data-id="${res.id}" class="download-btn">Download</button>
+          </div>
+        `;
+        container.appendChild(row);
+      });
+
+      // Attach download handlers
+      container.querySelectorAll('.download-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          const id = btn.getAttribute('data-id');
+          const res = sampleResources.find(r => r.id === id);
+          if(!res) return alert('Resource not found');
+          // Demo: generate a small text/pdf blob for download (replace with real file URL)
+          const demoContent = `This is a demo file for ${res.name}\nProvided by Timelytics.`;
+          const blob = new Blob([demoContent], { type: res.contentType || 'text/plain' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = res.filename || res.name;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          setTimeout(()=> URL.revokeObjectURL(url), 2000);
+        });
+      });
+    }
+
+    // Small helper to avoid HTML injection
+    function escapeHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+    // Simulate async fetch and render
+    setTimeout(()=> renderResources(sampleResources), 250);
   </script>
 </body>
 
