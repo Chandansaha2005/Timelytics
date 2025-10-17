@@ -447,6 +447,18 @@
     }
     document.querySelectorAll('button, a.btn-try, a.btn-learn, #getStarted').forEach(b => b.addEventListener('click', rippleEffect));
 
+    // Make "Get Started" redirect to signup page (adjust path if your signup is elsewhere)
+    (function makeGetStartedRedirect(){
+      const btn = document.getElementById('getStarted');
+      if (!btn) return;
+      btn.addEventListener('click', () => {
+        // allow ripple animation to show briefly, then navigate
+        setTimeout(() => {
+          window.location.href = '/Timelytics/frontend/signup.html';
+        }, 140);
+      });
+    })();
+
     // Intersection Observer: animate fade-in elements
     const io = new IntersectionObserver((entries) => {
       entries.forEach(entry => {

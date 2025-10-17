@@ -1,23 +1,633 @@
 <!doctype html>
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Faculty  Timelytics</title>
-    <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;600;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-  </head>
-  <body class="min-h-screen bg-surfaceGray p-6">
-    <div class="absolute top-4 right-4">
-      <button id="themeToggle" aria-pressed="false" aria-label="Toggle dark mode" onclick="(window.TimelyticsTheme||window.TimelyticsTheme)?.toggleTheme()" class="p-2 rounded-2xl bg-white/60 hover:bg-white/80 transition relative">
-        <span class="icon-sun" style="display:none;">☀️</span>
-        <span class="icon-moon">🌙</span>
-      </button>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Faculty Dashboard — Timelytics</title>
+
+  <!-- Google font -->
+  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;600;800&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    /* ---------------- Theme / variables ---------------- */
+    :root{
+      --magenta: #FF00FF;
+      --violet:  #8B00FF;
+      --neon:    #00BFFF;
+      --bg-deep: #06020b;
+      --glass: rgba(255,255,255,0.03);
+      --muted: rgba(230,238,243,0.72);
+    }
+    html,body{height:100%;font-family:'Unbounded',system-ui,-apple-system,'Segoe UI',Roboto,Arial;background:linear-gradient(180deg,#03010a 0%, #060218 60%);color:#eef2ff;-webkit-font-smoothing:antialiased}
+
+    /* ---------- animated floating gradient background ---------- */
+    .bg-anim {
+      position:fixed; inset:0; z-index:-40; pointer-events:none;
+      background: radial-gradient(600px 300px at 10% 10%, rgba(138,0,255,0.08), transparent 10%),
+                  radial-gradient(600px 300px at 90% 90%, rgba(0,191,255,0.06), transparent 8%);
+      overflow:hidden;
+    }
+    .bg-anim::before, .bg-anim::after{
+      content:""; position:absolute; width:140%; height:140%; left:-20%; top:-20%; filter:blur(90px);
+      background: linear-gradient(120deg, rgba(255,0,255,0.12), rgba(138,0,255,0.10) 45%, rgba(0,191,255,0.08) 100%);
+      mix-blend-mode: screen; animation: drift 20s linear infinite;
+    }
+    .bg-anim::after{ animation-direction:reverse; top:auto; bottom:-20%; left:auto; right:-20%; animation-duration:26s; }
+    @keyframes drift{ 0%{transform:translateY(0) rotate(0)} 50%{transform:translateY(-6%) rotate(6deg)} 100%{transform:translateY(0) rotate(0)} }
+
+    /* ---------- glass / card styles ---------- */
+    .glass {
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border: 1px solid rgba(255,255,255,0.04);
+      backdrop-filter: blur(8px) saturate(120%);
+      -webkit-backdrop-filter: blur(8px) saturate(120%);
+      border-radius: 12px;
+    }
+    .neon-edge {
+      position:relative;
+    }
+    .neon-edge::after{
+      content:""; position:absolute; inset:-1px; border-radius:14px;
+      background: linear-gradient(90deg,var(--neon),var(--violet),var(--magenta));
+      filter: blur(14px); opacity:0.12; z-index:-1;
+      pointer-events:none;
+    }
+    .hover-tilt{ transition: transform .22s cubic-bezier(.2,.9,.2,1), box-shadow .22s ease; }
+    .hover-tilt:hover{ transform: translateY(-6px) scale(1.02); box-shadow: 0 18px 50px rgba(0,0,0,0.55); }
+
+    /* ---------- Navbar sausage (thinner) ---------- */
+    header.topbar{ position:fixed; top:8px; left:0; right:0; display:flex; justify-content:center; z-index:60; padding:0 0.5rem; pointer-events:none; }
+    .sausage {
+      pointer-events:auto;
+      width:min(1150px, calc(100% - 1rem));
+      display:flex; gap:0.6rem; align-items:center;
+      padding:.35rem .6rem;                     /* reduced padding -> thinner bar */
+      border-radius:9999px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.006));
+      border:1px solid rgba(255,255,255,0.035);
+      backdrop-filter: blur(8px);
+    }
+    .brand { font-weight:800; font-size:1rem; } /* slightly smaller brand to save vertical space */
+    .search { min-width:200px; max-width:360px; padding:.25rem .45rem; } /* smaller search */
+    .view-toggle button{ padding:.28rem .45rem; border-radius:6px; font-size:.88rem; }
+
+    /* ---------- Layout ---------- */
+    main.container{ padding-top:88px; max-width:1200px; margin:0 auto; padding-left:1rem; padding-right:1rem; }
+
+    .layout{ display:grid; grid-template-columns: 320px 1fr 340px; gap:1rem; align-items:start; }
+    @media (max-width:1100px){ .layout{ grid-template-columns: 280px 1fr; } .right-col{ display:none; } }
+    @media (max-width:720px){ .layout{ grid-template-columns: 1fr; } .left-col{ order:2 } .main-col{ order:1 } }
+
+    /* ---------- Hero / quick stats ---------- */
+    .hero-card{ padding:1.25rem; display:flex; gap:1rem; align-items:center; justify-content:space-between; }
+    .stats-row{ display:flex; gap:1rem; margin-top:1rem; flex-wrap:wrap; }
+    .stat { padding:1rem; min-width:150px; flex:1; border-radius:10px; display:flex; gap:.75rem; align-items:center; }
+    .stat .value{ font-weight:800; font-size:1.25rem; }
+    .stat .label{ color:var(--muted); font-size:.85rem; }
+
+    /* small chart placeholder */
+    .mini-chart{ width:56px; height:34px; border-radius:6px; background:linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.03)); display:flex; align-items:center; justify-content:center; color:rgba(255,255,255,0.75); font-weight:700; }
+
+    /* urgent alerts */
+    .alerts{ margin-top:1rem; display:flex; gap:.75rem; flex-direction:column; }
+
+    /* ---------- Timetable grid ---------- */
+    .timetable {
+      margin-top:1rem; padding:1rem; border-radius:12px; min-height:420px; overflow:auto;
+      border:1px solid rgba(255,255,255,0.03);
+    }
+    .tt-grid { display:grid; grid-template-columns: 80px repeat(5,1fr); gap:6px; align-items:stretch; }
+    .tt-slot { background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.006)); padding:.5rem; border-radius:8px; height:72px; position:relative; border:1px solid rgba(255,255,255,0.02); }
+    .tt-slot .meta{ font-size:.78rem; color:var(--muted); margin-top:.35rem; }
+    .slot-upcoming{ border-left:4px solid var(--neon); }
+    .slot-completed{ opacity:.7; background:linear-gradient(180deg, rgba(255,255,255,0.008), rgba(255,255,255,0.006)); border-left:4px solid rgba(255,255,255,0.03); }
+    .slot-cancelled{ border-left:4px solid rgba(255,40,60,0.9); opacity:0.8; }
+
+    .occupancy { height:6px; border-radius:6px; background:rgba(255,255,255,0.03); overflow:hidden; margin-top:.5rem; }
+    .occupancy > i{ display:block; height:100%; background: linear-gradient(90deg,var(--neon),var(--violet)); width:40%; }
+
+    .slot-actions{ position:absolute; right:8px; top:8px; display:flex; gap:6px; opacity:0; transition: opacity .12s ease; }
+    .tt-slot:hover .slot-actions{ opacity:1; }
+
+    /* current time indicator (for visual) */
+    .current-line{ position:absolute; height:2px; left:80px; right:0; background:linear-gradient(90deg, #ff4dff, #00d6ff); box-shadow:0 6px 18px rgba(138,0,255,0.12); z-index:10; }
+
+    /* ---------- Sidebars ---------- */
+    .side-card{ padding:1rem; margin-bottom:1rem; }
+    .list-row{ display:flex; justify-content:space-between; gap:.5rem; align-items:center; padding:.45rem .5rem; border-radius:8px; }
+    .next-highlight{ border-left:3px solid var(--neon); background:linear-gradient(180deg, rgba(255,255,255,0.008), rgba(255,255,255,0.006)); }
+
+    /* analytics widgets (right) */
+    .chart-box{ padding:1rem; min-height:160px; }
+
+    /* ---------- Modals ---------- */
+    .modal-backdrop{ position:fixed; inset:0; background:rgba(2,4,12,0.6); display:flex; align-items:center; justify-content:center; z-index:80; }
+    .modal{ width:min(820px,95%); max-height:85vh; overflow:auto; border-radius:12px; padding:1rem; }
+
+    /* ---------- small helpers ---------- */
+    .pill{ padding:.25rem .5rem; border-radius:999px; background:rgba(255,255,255,0.03); font-weight:700; font-size:.82rem }
+    .skeleton{ background:linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.03)); border-radius:6px; height:14px; width:100%; opacity:.6; }
+    [draggable="true"]{ cursor:grab; }
+    .sr-only{ position:absolute; left:-10000px; top:auto; width:1px; height:1px; overflow:hidden; }
+  </style>
+</head>
+<body>
+
+  <!-- animated bg -->
+  <div class="bg-anim" aria-hidden="true"></div>
+
+  <!-- Top sausage navbar -->
+  <header class="topbar" role="banner">
+    <div class="sausage glass neon-edge" role="navigation" aria-label="Main navigation">
+      <div class="flex items-center gap-4">
+        <a href="#" class="brand" aria-label="Timelytics home">Timelytics</a>
+
+      </div>
+
+      <!-- search + view toggles + actions -->
+      <div class="flex items-center gap-3 nav-actions">
+        <div class="search" role="search" aria-label="Quick search">
+          <svg class="w-4 h-4 text-white/80" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="11" cy="11" r="6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <input class="bg-transparent outline-none placeholder:opacity-60 text-sm w-full" placeholder="Search students, classes, rooms" aria-label="Search" />
+        </div>
+
+        <!-- View toggle: only Week view kept (monthly/yearly removed) -->
+        <div class="view-toggle" role="tablist" aria-label="View toggle">
+          <button class="active" data-view="week" role="tab" aria-selected="true">Week</button>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <div class="text-sm text-white/90" id="clock" aria-live="polite">--:--:--</div>
+          <button class="pill" aria-label="Notifications" title="Notifications">🔔 <span id="notifBadge" class="ml-1 text-xs bg-red-500 rounded-full px-1">3</span></button>
+
+          <div class="flex items-center gap-2" aria-haspopup="true">
+            <button id="profileBtn" class="flex items-center gap-2">
+              <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-[#6a00f4] to-[#00bfff] flex items-center justify-center text-sm font-bold">DS</div>
+              <div class="text-sm text-white/90">Dr. Sharma</div>
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
-    <div class="max-w-4xl mx-auto bg-white p-6 rounded shadow">
-      <h1 class="text-2xl font-bold">Faculty Dashboard</h1>
-      <p class="mt-4">Personalized timetable and notifications will appear here. This is a placeholder page for the demo.</p>
+  </header>
+
+  <!-- Main container -->
+  <main class="container" role="main">
+    <div class="layout">
+
+      <!-- Left sidebar: Class management tools -->
+      <aside class="left-col">
+        <!-- Today's Classes -->
+        <div class="side-card glass neon-edge">
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="text-sm text-white/90 font-semibold">Today's Classes</div>
+              <div class="text-xs text-white/70">Monday • 15 Apr</div>
+            </div>
+            <div class="pill">Next 2h</div>
+          </div>
+          <div class="mt-3 space-y-2" id="todaysClasses">
+            <!-- JS will populate -->
+            <div class="list-row next-highlight">
+              <div>
+                <div class="font-semibold">Calculus — Section A</div>
+                <div class="text-xs text-white/60">09:00 - 10:00 • R101</div>
+              </div>
+              <div class="text-xs text-white/70">30m</div>
+            </div>
+            <div class="list-row">
+              <div>
+                <div class="font-semibold">Algorithms — Section B</div>
+                <div class="text-xs text-white/60">10:30 - 11:30 • Lab 2</div>
+              </div>
+              <div class="text-xs text-white/70">1h 10m</div>
+            </div>
+          </div>
+          <div class="mt-3 text-xs text-white/70">Time until next: <span id="timeUntilNext">00:29:12</span></div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="side-card glass neon-edge">
+          <div class="text-sm font-semibold">Quick Actions</div>
+          <div class="mt-3 grid gap-2">
+            <button class="glass p-2 text-sm hover-tilt" id="actMark">Mark Attendance</button>
+            <button class="glass p-2 text-sm hover-tilt" id="actUpload">Upload Notes</button>
+            <button class="glass p-2 text-sm hover-tilt" id="actAnnounce">Adjust Class</button>
+          </div>
+        </div>
+
+        <!-- Student Performance -->
+        <div class="side-card glass neon-edge">
+          <div class="text-sm font-semibold">Student Performance</div>
+          <div class="mt-3 text-xs text-white/70">Class-wise averages</div>
+          <div class="mt-3 space-y-2">
+            <div class="flex items-center justify-between text-sm"><span>Calculus</span><span>78%</span></div>
+            <div class="flex items-center justify-between text-sm"><span>Algorithms</span><span>84%</span></div>
+            <div class="flex items-center justify-between text-sm"><span>DBMS</span><span>72%</span></div>
+          </div>
+          <div class="mt-3 text-xs text-white/70">Struggling: <strong>5 students</strong></div>
+        </div>
+
+        <!-- Preferences & Settings -->
+        <div class="side-card glass neon-edge">
+          <div class="text-sm font-semibold">Preferences & Settings</div>
+          <div class="mt-2 text-xs text-white/70">Max consecutive classes: <strong id="prefMax">3</strong></div>
+          <div class="mt-2 text-xs text-white/70">Preferred break: <strong id="prefBreak">12:00 - 13:00</strong></div>
+          <div class="mt-3 flex gap-2">
+            <button class="glass p-2 text-sm" id="btnEditPrefs">Edit</button>
+            <button class="glass p-2 text-sm" id="btnLeaves">Manage Leaves</button>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Main column -->
+      <section class="main-col">
+        <!-- Welcome hero -->
+        <div class="hero-card glass neon-edge hover-tilt">
+          <div>
+            <div class="text-sm text-white/80">Welcome back,</div>
+            <h2 class="text-2xl font-extrabold">Prof. Dr. Sharma 👋</h2>
+            <p class="text-sm text-white/70 mt-1">Manage classes, attendance and uploads. Use quick actions or click a slot to open details.</p>
+
+            <div class="stats-row">
+              <div class="stat glass neon-edge hover-tilt">
+                <div>
+                  <div class="label">Classes Today</div>
+                  <div class="value" id="statToday">3</div>
+                </div>
+                <div class="mini-chart">↗︎</div>
+              </div>
+
+              <!-- Total Students card: number removed (keeps label only) -->
+              <div class="stat glass neon-edge hover-tilt">
+                <div>
+                  <div class="label">Total Students</div>
+                  <div class="value" id="statStudents" aria-hidden="true">69</div>
+                </div>
+                <div class="mini-chart">Σ</div>
+              </div>
+
+              <div class="stat glass neon-edge hover-tilt">
+                <div>
+                  <div class="label">Classes This Semester</div>
+                  <div class="value" id="statSemester">60</div>
+                </div>
+                <div class="mini-chart">▴</div>
+              </div>
+
+              <div class="stat glass neon-edge hover-tilt">
+                <div>
+                  <div class="label">Average Attendance</div>
+                  <div class="value" id="statAttendance">88%</div>
+                </div>
+                <div class="mini-chart">%</div>
+              </div>
+            </div>
+
+            <div class="alerts">
+              <div class="glass p-2 flex items-center justify-between">
+                <div>
+                  <div class="text-sm font-semibold">Urgent Alerts</div>
+                  <div class="text-xs text-white/70">2 pending approvals • 1 schedule conflict</div>
+                </div>
+                <button class="pill" id="btnResolve">Resolve</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Timetable -->
+        <div class="timetable glass neon-edge">
+          <div class="relative">
+            <div id="currentLine" class="current-line" style="top:120px; display:none;"></div>
+            <div class="tt-grid" aria-label="Teaching timetable grid" role="table" tabindex="0">
+              <!-- Time column -->
+              <div class="text-sm text-white/70">Time</div>
+              <div class="text-sm font-semibold text-white/90 text-center">Monday</div>
+              <div class="text-sm font-semibold text-white/90 text-center">Tuesday</div>
+              <div class="text-sm font-semibold text-white/90 text-center">Wednesday</div>
+              <div class="text-sm font-semibold text-white/90 text-center">Thursday</div>
+              <div class="text-sm font-semibold text-white/90 text-center">Friday</div>
+
+              <!-- rows (example timeslots 08:00-18:00 every hour) -->
+              <script>
+                // Generate timetable slots skeleton into DOM (runs before interactive JS)
+                (function renderTimetableSkeleton(){
+                  const grid = document.currentScript.parentElement;
+                  const times = ['08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00'];
+                  times.forEach(time=>{
+                    const timeCell = document.createElement('div');
+                    timeCell.className = 'text-xs text-white/70';
+                    timeCell.textContent = time;
+                    grid.appendChild(timeCell);
+                    for(let d=0; d<5; d++){
+                      const slot = document.createElement('div');
+                      slot.className = 'tt-slot hover-tilt';
+                      slot.setAttribute('role','button');
+                      slot.setAttribute('tabindex','0');
+                      slot.setAttribute('data-day', ['Monday','Tuesday','Wednesday','Thursday','Friday'][d]);
+                      slot.setAttribute('data-start', time);
+                      slot.innerHTML = `<div class="font-semibold text-sm">—</div><div class="meta">Free</div>`;
+                      grid.appendChild(slot);
+                    }
+                  });
+                })();
+              </script>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right sidebar: Analytics & Insights -->
+      <aside class="right-col">
+        <div class="side-card glass neon-edge chart-box">
+          <div class="text-sm font-semibold">Teaching Load Distribution</div>
+          <div class="mt-3 text-xs text-white/70">Hours taught per day</div>
+          <div class="mt-3 h-28 bg-gradient-to-tr from-white/2 to-white/1 rounded-md flex items-end gap-2 p-2">
+            <!-- simple bar representation -->
+            <div style="flex:1"><div style="height:60%" class="bg-gradient-to-t from-[#00bfff] to-[#6a00f4] rounded-md w-full"></div></div>
+            <div style="flex:1"><div style="height:55%" class="bg-gradient-to-t from-[#00bfff] to-[#6a00f4] rounded-md w-full"></div></div>
+            <div style="flex:1"><div style="height:65%" class="bg-gradient-to-t from-[#00bfff] to-[#6a00f4] rounded-md w-full"></div></div>
+            <div style="flex:1"><div style="height:50%" class="bg-gradient-to-t from-[#00bfff] to-[#6a00f4] rounded-md w-full"></div></div>
+            <div style="flex:1"><div style="height:45%" class="bg-gradient-to-t from-[#00bfff] to-[#6a00f4] rounded-md w-full"></div></div>
+          </div>
+        </div>
+
+        <div class="side-card glass neon-edge chart-box">
+          <div class="text-sm font-semibold">Classroom Utilization</div>
+          <div class="mt-3 text-xs text-white/70">Avg attendance per class</div>
+          <div class="mt-3">
+            <div class="flex items-center justify-between text-sm"><span>R101</span><span>88%</span></div>
+            <div class="h-2 bg-white/5 rounded mt-1 overflow-hidden"><i style="width:88%;display:block;height:100%;background:linear-gradient(90deg,var(--neon),var(--violet));"></i></div>
+          </div>
+        </div>
+
+        <div class="side-card glass neon-edge chart-box">
+          <div class="text-sm font-semibold">Student Feedback</div>
+          <div class="mt-2 text-xs text-white/70">Recent ratings</div>
+          <div class="mt-3 text-sm">Average: <strong>4.2 / 5</strong></div>
+        </div>
+
+        <div class="side-card glass neon-edge chart-box">
+          <div class="text-sm font-semibold">Announcements Sent</div>
+          <ul class="mt-3 text-sm space-y-2 text-white/80" id="annList">
+            <li>Assignment 2 posted • 38 read</li>
+            <li>Room change notice • 45 read</li>
+          </ul>
+        </div>
+      </aside>
     </div>
-  </body>
-  <script src="/frontend/assets/theme.js"></script>
+
+    <!-- bottom: semester/course management & performance -->
+    <section class="mt-6 grid gap-4">
+      <div class="glass neon-edge p-4 hover-tilt">
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="text-sm font-semibold">My Courses</div>
+            <div class="text-xs text-white/70">Courses this semester</div>
+          </div>
+          <div class="text-sm text-white/70">Export ⤓</div>
+        </div>
+        <div class="mt-3 grid md:grid-cols-3 gap-3">
+          <div class="glass p-3">
+            <div class="font-semibold">CS101 - Calculus</div><div class="text-xs text-white/70">3x/week</div> <!-- student count removed -->
+          </div>
+          <div class="glass p-3">
+            <div class="font-semibold">CS201 - Algorithms</div><div class="text-xs text-white/70">2x/week</div> <!-- student count removed -->
+          </div>
+          <div class="glass p-3">
+            <div class="font-semibold">CS305 - DBMS</div><div class="text-xs text-white/70">2x/week</div> <!-- student count removed -->
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="mt-8 text-center text-xs text-white/70 pb-8">
+    <div class="max-w-6xl mx-auto px-4">
+      <div style="height:2px; background:linear-gradient(90deg,var(--neon),var(--violet),var(--magenta)); border-radius:2px; margin-bottom:10px;"></div>
+      © 2025 Timelytics | Built with ❤️ by TANTRIKS.
+    </div>
+  </footer>
+
+  <!-- Modals (hidden by default) -->
+  <div id="modalRoot" aria-hidden="true"></div>
+
+  <!-- ---------------- JS: interactions, mock API calls, accessibility shortcuts ---------------- -->
+  <script>
+    // Utility: mock fetch (replace with real API calls)
+    async function api(path, opts){
+      // placeholder to illustrate integration — replace with fetch(...) to backend
+      console.debug('API', path, opts||'GET');
+      return new Promise(r => setTimeout(()=> r({ ok:true, data: window.__mockData__ || {} }), 500));
+    }
+
+    // Clock & realtime updates
+    function startClock(){
+      const el = document.getElementById('clock');
+      function tick(){ const now = new Date(); el.textContent = now.toLocaleTimeString(); }
+      tick(); setInterval(tick, 1000);
+    }
+    startClock();
+
+    // Populate quick stats (from backend) - removed setting of student count display
+    (async function loadStats(){
+      // mock API usage
+      const res = await api('/api/faculty/profile');
+      // demo data
+      const demo = {
+        faculty:{name:'Dr. Sharma'},
+        analytics:{totalClasses:60, averageAttendance:88.5, totalStudents:150, classesCompleted:45, upcomingClasses:3}
+      };
+      document.getElementById('statToday').textContent = demo.analytics.upcomingClasses || 0;
+      // removed: document.getElementById('statStudents').textContent = demo.analytics.totalStudents || 0;
+      document.getElementById('statSemester').textContent = demo.analytics.totalClasses || 0;
+      document.getElementById('statAttendance').textContent = Math.round(demo.analytics.averageAttendance) + '%';
+    })();
+
+    // Timetable population example (replace with schedule endpoint)
+    (async function populateSchedule(){
+      const schedule = [
+        {id:'class_001', subject:'Calculus', batch:'Section A', room:'R101', capacity:50, enrolledCount:45, timeStart:'09:00', timeEnd:'10:00', day:'Monday', type:'Theory', isOnline:false, status:'scheduled'},
+        {id:'class_002', subject:'Algorithms', batch:'Section B', room:'Lab 2', capacity:40, enrolledCount:38, timeStart:'10:00', timeEnd:'11:00', day:'Tuesday', type:'Lab', isOnline:false, status:'scheduled'},
+        {id:'class_003', subject:'DBMS', batch:'Section A', room:'R102', capacity:45, enrolledCount:40, timeStart:'11:00', timeEnd:'12:00', day:'Wednesday', type:'Theory', isOnline:true, meetingLink:'https://meet.example/abc', status:'completed'}
+      ];
+
+      // map slots
+      const slots = Array.from(document.querySelectorAll('.tt-slot'));
+      slots.forEach(s => {
+        const day = s.dataset.day;
+        const start = s.dataset.start;
+        const match = schedule.find(it=>it.day===day && it.timeStart===start);
+        if(match){
+          s.dataset.classId = match.id;
+          s.innerHTML = `
+            <div class="font-semibold">${match.subject}</div>
+            <div class="meta">${match.batch} • ${match.enrolledCount}/${match.capacity} • ${match.room}</div>
+            <div class="occupancy"><i style="width:${Math.round((match.enrolledCount/match.capacity)*100)}%"></i></div>
+            <div class="slot-actions">
+              <button class="pill open-detail" title="View">View</button>
+            </div>
+          `;
+          s.classList.add(match.status==='completed'?'slot-completed':'slot-upcoming');
+          if(match.status==='cancelled') s.classList.add('slot-cancelled');
+          // interactions
+          s.addEventListener('click', ()=> openClassDetail(match));
+          s.addEventListener('contextmenu', (ev)=>{ ev.preventDefault(); openQuickMenu(match, ev.clientX, ev.clientY); });
+        }
+      });
+    })();
+
+    // Open class detail modal
+    function openClassDetail(cls){
+      showModal(`
+        <div class="glass neon-edge p-4">
+          <div class="flex justify-between items-start">
+            <div>
+              <h3 class="text-lg font-bold">${cls.subject} • ${cls.batch}</h3>
+              <div class="text-sm text-white/70">${cls.timeStart} - ${cls.timeEnd} • ${cls.room} • ${cls.type}</div>
+            </div>
+            <div class="text-sm text-white/80">Size: ${cls.enrolledCount}/${cls.capacity}</div>
+          </div>
+          <div class="mt-3">
+            <button class="pill" id="btnMarkAttendance">Mark Attendance</button>
+            <button class="pill" id="btnNotes">Update Notes</button>
+            <button class="pill" id="btnReschedule">Reschedule</button>
+            <button class="pill" id="btnViewStudents">View Students</button>
+          </div>
+        </div>
+      `);
+      // attach handlers (demo)
+      setTimeout(()=>{
+        document.getElementById('btnMarkAttendance')?.addEventListener('click', ()=> openAttendanceModal(cls));
+        document.getElementById('btnReschedule')?.addEventListener('click', ()=> openRescheduleModal(cls));
+      },50);
+    }
+
+    // Quick actions menu (right-click)
+    function openQuickMenu(cls, x, y){
+      const menu = document.createElement('div');
+      menu.className = 'glass p-2 neon-edge';
+      menu.style.position = 'fixed'; menu.style.left = x + 'px'; menu.style.top = y + 'px'; menu.style.zIndex = 90;
+      menu.innerHTML = `<div class="text-sm">Actions for ${cls.subject}</div><div class="mt-2 space-y-1"><button class="pill">Mark Attendance</button><button class="pill">Reschedule</button><button class="pill">View Students</button></div>`;
+      document.body.appendChild(menu);
+      function cleanup(){ menu.remove(); document.removeEventListener('click', cleanup); }
+      setTimeout(()=> document.addEventListener('click', cleanup), 50);
+    }
+
+    // Modal helper
+    function showModal(html){
+      const root = document.getElementById('modalRoot');
+      root.innerHTML = `<div class="modal-backdrop" role="dialog" aria-modal="true"><div class="modal glass neon-edge">${html}<div class="mt-3 text-right"><button id="modalClose" class="pill">Close</button></div></div></div>`;
+      root.setAttribute('aria-hidden','false');
+      document.getElementById('modalClose')?.addEventListener('click', closeModal);
+    }
+    function closeModal(){ const root=document.getElementById('modalRoot'); root.innerHTML=''; root.setAttribute('aria-hidden','true'); }
+
+    // Attendance modal
+    function openAttendanceModal(cls){
+      // demo: simple roster skeleton
+      const roster = Array.from({length:cls.enrolledCount}).map((_,i)=>({id:'s'+(100+i),name:'Student '+(i+1),status:'present'})).slice(0,12);
+      showModal(`
+        <div class="glass p-3">
+          <h3 class="font-bold">${cls.subject} — Attendance</h3>
+          <div class="text-xs text-white/70">Mark present/absent (space to toggle)</div>
+          <div class="mt-3 space-y-2">
+            ${roster.map(s=>`<div class="flex items-center gap-2 p-2 bg-white/2 rounded"><input type="checkbox" data-student="${s.id}" checked/> <div class="flex-1">${s.name}</div></div>`).join('')}
+          </div>
+          <div class="mt-3 text-right"><button id="saveAttendance" class="pill">Save & Notify</button></div>
+        </div>
+      `);
+      document.getElementById('saveAttendance')?.addEventListener('click', ()=>{
+        // collect and mock POST
+        const checked = Array.from(document.querySelectorAll('[data-student]')).filter(i=>i.querySelector('input').checked).length;
+        alert('Saved attendance. Present: '+checked);
+        closeModal();
+      });
+      // keyboard: space toggles focused checkbox
+      document.addEventListener('keydown', function kb(e){
+        if(e.key==='Escape') { closeModal(); document.removeEventListener('keydown', kb); }
+      });
+    }
+
+    // Reschedule modal (simple)
+    function openRescheduleModal(cls){
+      showModal(`
+        <div class="glass p-3">
+          <h3 class="font-bold">Reschedule ${cls.subject}</h3>
+          <div class="mt-2 text-sm text-white/70">Select new day/time (shows available slots)</div>
+          <div class="mt-3 grid grid-cols-2 gap-2">
+            <button class="pill">Mon 14:00</button><button class="pill">Tue 09:00</button><button class="pill">Wed 11:00</button><button class="pill">Thu 16:00</button>
+          </div>
+          <div class="mt-3"><label class="text-xs text-white/70">Reason</label><textarea class="w-full mt-1 p-2 rounded bg-white/2" rows="2"></textarea></div>
+          <div class="mt-3 text-right"><button id="confirmRes" class="pill">Confirm</button></div>
+        </div>
+      `);
+      document.getElementById('confirmRes')?.addEventListener('click', ()=> { alert('Rescheduled (demo)'); closeModal(); });
+    }
+
+    // Demo: time until next class countdown (updates every second)
+    (function countdownNext(){
+      const el = document.getElementById('timeUntilNext');
+      let next = Date.now() + (29*60+12)*1000; // demo value
+      setInterval(()=>{
+        const diff = Math.max(0, next - Date.now());
+        const h = Math.floor(diff/3600000); const m = Math.floor(diff%3600000/60000); const s = Math.floor(diff%60000/1000);
+        el.textContent = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+      },1000);
+    })();
+
+    // Keyboard shortcuts & accessibility
+    document.addEventListener('keydown', (e)=>{
+      // A => open attendance quick modal
+      if(e.key.toLowerCase()==='a' && !e.metaKey && !e.ctrlKey){ e.preventDefault(); document.getElementById('actMark').click(); }
+      // N => new note
+      if(e.key.toLowerCase()==='n'){ document.getElementById('actAnnounce').click(); }
+      // / focus search
+      if(e.key==='/' ){ e.preventDefault(); document.querySelector('.search input').focus(); }
+    });
+
+    // Wire quick action buttons (demo)
+    document.getElementById('actMark').addEventListener('click', ()=> openAttendanceModal({subject:'Quick Mark', batch:'All', enrolledCount:12, capacity:12, timeStart:'--:--', timeEnd:'--:--', room:'--', type:'Theory'}));
+    document.getElementById('actUpload').addEventListener('click', ()=> showModal('<div class="glass p-3"><h3>Upload Notes</h3><div class="mt-3 p-4 border-dashed border rounded bg-white/2 text-center">Drag & drop files here</div><div class="mt-3 text-right"><button class="pill" onclick="closeModal()">Close</button></div></div>'));
+    document.getElementById('actAnnounce').addEventListener('click', ()=> showModal('<div class="glass p-3"><h3>Compose Announcement</h3><textarea class="w-full mt-2 p-2 rounded bg-white/2" rows="4"></textarea><div class="mt-3 text-right"><button class="pill">Send</button></div></div>'));
+    document.getElementById('actResources').addEventListener('click', ()=> showModal('<div class="glass p-3">Classroom resources (demo)</div>'));
+
+    // Stagger reveal animation on load
+    window.addEventListener('load', ()=>{
+      document.querySelectorAll('.glass.hover-tilt, .glass.neon-edge').forEach((el,i)=> setTimeout(()=> el.classList.add('reveal','visible'), i*80));
+      // make current time line visible and update position periodically
+      const line = document.getElementById('currentLine');
+      if(line) line.style.display = 'block';
+      setInterval(()=> updateCurrentLine(line), 60000);
+      updateCurrentLine(line);
+    });
+
+    function updateCurrentLine(line){
+      // simple demo: compute a top offset relative to timetable grid depending on current time
+      const grid = document.querySelector('.tt-grid');
+      if(!grid || !line) return;
+      const startHour = 8; const endHour = 18;
+      const now = new Date();
+      const hour = now.getHours() + now.getMinutes()/60;
+      if(hour < startHour || hour > endHour){ line.style.display='none'; return; }
+      line.style.display='block';
+      const totalSlots = (endHour - startHour);
+      const pct = (hour - startHour)/totalSlots;
+      // compute approximate top inside timetable (estimate)
+      const rect = grid.getBoundingClientRect();
+      const top = rect.top + pct * (rect.height - 40);
+      line.style.top = (top - rect.top + 6) + 'px';
+    }
+
+    // small accessibility: focus styles for keyboard users
+    document.body.addEventListener('keyup', e=>{
+      if(e.key==='Tab') document.body.classList.add('user-is-tabbing');
+    });
+  </script>
+</body>
 </html>
