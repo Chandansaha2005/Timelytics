@@ -10,6 +10,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;600;800&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
+    /* Responsive and zoom-friendly improvements (keeps same colors/background) */
+    *, *::before, *::after { box-sizing: border-box; }
+
     :root {
       /* dark defaults for landing page */
       --primary: #390be0;
@@ -22,27 +25,36 @@
       --glass-bg: rgba(7, 9, 14, 0.6);
     }
 
-    html,
-    body {
-      height: 100%;
-    }
+    /* Scale base font so text and UI scale smoothly when browser zooms */
+    html { font-size: clamp(14px, 1.4vw, 18px); height: 100%; }
+    body { height: 100%; margin: 0; font-family: 'Unbounded', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; color: var(--text); background: var(--bg-gradient); -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; overflow-x: hidden; }
 
-    body {
-      font-family: 'Unbounded', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
-      color: var(--text);
-      background: var(--bg-gradient);
-    }
-
+    /* Background / Spline viewer stays visually identical but is bounded to prevent horizontal scroll */
     .background {
       position: absolute;
-      /* positioned within its wrapper */
-      right: 0;
       top: 0;
-      width: 100%;
+      left: 50%;
+      transform: translateX(-50%) scale(1);
+      width: 120vw;
+      max-width: 2200px;
       height: 100%;
       pointer-events: none;
       z-index: -1;
-      transform: scale(1.2);
+      transform-origin: center top;
+    }
+
+    /* Slight scaling on very wide screens to keep balance */
+    @media (min-width: 1400px) { .background { transform: translateX(-50%) scale(1.08); } }
+    @media (min-width: 2000px) { .background { transform: translateX(-50%) scale(1.2); } }
+
+    /* Keep spline viewer contained and responsive */
+    spline-viewer.background,
+    .background spline-viewer {
+      display: block;
+      width: 100%;
+      height: 100%;
+      max-width: 2200px;
+      object-fit: cover;
     }
 
     .glass {
@@ -52,15 +64,11 @@
       border: 1px solid rgba(255, 255, 255, 0.06);
     }
 
-    .blur-top {
-      backdrop-filter: blur(8px);
-    }
+    .blur-top { backdrop-filter: blur(8px); }
 
-    .nav-scrolled {
-      background: rgba(255, 255, 255, 0.95);
-      box-shadow: 0 6px 18px rgba(16, 24, 40, 0.08);
-    }
+    .nav-scrolled { background: rgba(255, 255, 255, 0.95); box-shadow: 0 6px 18px rgba(16, 24, 40, 0.08); }
 
+    /* Ripple effect */
     .ripple {
       position: absolute;
       border-radius: 9999px;
@@ -69,23 +77,49 @@
       animation: ripple 600ms linear;
       pointer-events: none;
     }
-
-    @keyframes ripple {
-      to {
-        transform: scale(4);
-        opacity: 0;
-      }
-    }
+    @keyframes ripple { to { transform: scale(4); opacity: 0; } }
 
     .fade-in {
       transform: translateY(20px);
       opacity: 0;
       transition: all 600ms cubic-bezier(.2, .9, .2, 1);
     }
+    .fade-in.show { transform: translateY(0); opacity: 1; }
 
-    .fade-in.show {
-      transform: translateY(0);
-      opacity: 1;
+    /* Layout padding tuned for small screens to avoid clipping at zoom */
+    header#topNav { padding-left: 1rem; padding-right: 1rem; }
+    main { padding-left: 1rem; padding-right: 1rem; }
+
+    /* Feature cards flow better at smaller widths */
+    .feature-card { min-height: 140px; display: flex; flex-direction: column; justify-content: flex-start; }
+
+    /* Ensure images and block elements cannot overflow */
+    img, .mx-auto, svg { max-width: 100%; height: auto; display: block; }
+
+    /* Buttons: avoid large left/right padding on small devices so layout doesn't wrap */
+    .btn-try, .btn-learn, #getStarted {
+      white-space: nowrap;
+    }
+
+    @media (max-width: 1024px) {
+      /* reduce some spacing on medium screens */
+      header#topNav { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+      .background { width: 140vw; }
+    }
+
+    @media (max-width: 640px) {
+      /* mobile adjustments */
+      .nav-scrolled { padding: 0.5rem 0.75rem; }
+      .btn-try, .btn-learn, #getStarted { padding-left: 0.75rem; padding-right: 0.75rem; font-size: 0.95rem; }
+      .feature-card { min-height: 120px; }
+      /* ensure hero content stacks cleanly */
+      #hero { grid-template-columns: 1fr !important; }
+    }
+
+    /* Accessibility: visible focus for keyboard users */
+    .user-is-tabbing a:focus, .user-is-tabbing button:focus {
+      outline: 3px solid rgba(57,11,224,0.18);
+      outline-offset: 2px;
     }
   </style>
   <script type="module" src="https://unpkg.com/@splinetool/viewer@1.10.81/build/spline-viewer.js"></script>
