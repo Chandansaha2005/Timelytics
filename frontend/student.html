@@ -1,23 +1,217 @@
 <!doctype html>
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Student  Timelytics</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Timelytics — Student Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;600;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      :root{ --bg:#0a0a0a; --card-bg: rgba(20,20,30,0.6); --magenta:#ff00ff; --blue:#6a5acd; --violet:#4b0082 }
+      html,body{height:100%}
+      body{font-family:'Unbounded', system-ui, -apple-system, 'Segoe UI', Roboto, Arial; background:linear-gradient(180deg,#0a0a0a,#0e0e14); color:#e6eef8;}
+
+      /* Neon utilities */
+      .neon-text{background:linear-gradient(90deg,var(--magenta),var(--blue),var(--violet));-webkit-background-clip:text;background-clip:text;color:transparent}
+      .glass{background:var(--card-bg);backdrop-filter:blur(8px);border-radius:1rem;border:1px solid rgba(255,255,255,0.04)}
+      .glow{box-shadow:0 0 30px rgba(106,90,205,0.08)}
+
+      /* header */
+      header.site-header{position:fixed;inset:0 0 auto 0;top:0;left:0;right:0;height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;backdrop-filter:blur(6px);background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-bottom:1px solid rgba(255,255,255,0.04);z-index:40}
+      .nav-actions button{transition:all .18s ease}
+      .nav-actions button:hover{transform:translateY(-2px);filter:drop-shadow(0 8px 30px rgba(106,90,205,0.08))}
+
+      /* layout */
+      .app{padding-top:88px;max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr 360px;gap:20px;padding:28px}
+      @media (max-width:980px){ .app{grid-template-columns:1fr} }
+
+      /* timetable */
+      .timetable-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+      .slot{padding:10px;border-radius:10px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.03);transition:transform .18s ease, box-shadow .18s ease}
+      .slot:hover{transform:translateY(-6px);box-shadow:0 12px 40px rgba(106,90,205,0.08)}
+
+      /* tooltip */
+      .tooltip{position:absolute;background:rgba(10,10,15,0.95);padding:8px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);z-index:60;transform-origin:top left}
+
+      /* buttons */
+      .neon-btn{background:linear-gradient(90deg,var(--magenta),var(--blue),var(--violet));padding:8px 12px;border-radius:8px;color:white;font-weight:600;transition:transform .14s ease, box-shadow .14s ease}
+      .neon-btn:hover{transform:translateY(-3px) scale(1.02);box-shadow:0 18px 60px rgba(106,90,205,0.18)}
+
+      /* notifications */
+      .notif{border-left:4px solid; padding:10px;border-radius:8px;background:rgba(255,255,255,0.02);margin-bottom:10px}
+      .notif.type-class{border-color:var(--blue)}
+      .notif.type-change{border-color:#ffd166}
+      .notif.type-cancel{border-color:#ff6b6b}
+
+      /* fade in */
+      .fade-up{opacity:0;transform:translateY(12px);animation:fadeUp .6s ease forwards}
+      @keyframes fadeUp{to{opacity:1;transform:none}}
+    </style>
   </head>
-  <body class="min-h-screen bg-surfaceGray p-6">
-    <div class="absolute top-4 right-4">
-      <button id="themeToggle" aria-pressed="false" aria-label="Toggle dark mode" onclick="(window.TimelyticsTheme||window.TimelyticsTheme)?.toggleTheme()" class="p-2 rounded-2xl bg-white/60 hover:bg-white/80 transition relative">
-        <span class="icon-sun" style="display:none;">☀️</span>
-        <span class="icon-moon">🌙</span>
-      </button>
-    </div>
-    <div class="max-w-4xl mx-auto bg-white p-6 rounded shadow">
-      <h1 class="text-2xl font-bold">Student Dashboard</h1>
-      <p class="mt-4">Timetable view and elective selection will appear here. This is a placeholder page for the demo.</p>
-    </div>
+  <body>
+    <!-- 🌌 Header Navbar -->
+    <header class="site-header glass">
+      <div class="flex items-center gap-4">
+        <div class="text-xl font-extrabold neon-text">Timelytics</div>
+        <div class="text-sm text-gray-300">Student Dashboard</div>
+      </div>
+      <div class="nav-actions flex items-center gap-4">
+        <button id="notifBtn" aria-haspopup="true" aria-expanded="false" class="p-2 rounded-md bg-transparent">🔔</button>
+        <div class="relative">
+          <button id="profileBtn" class="flex items-center gap-2 p-1 rounded-md bg-transparent">
+            <img src="/frontend/assets/avatar.png" alt="avatar" class="w-8 h-8 rounded-full" />
+            <span class="text-sm">Alex S.</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="app">
+      <!-- 🕒 Timetable Section -->
+      <section class="glass p-6 rounded-2xl fade-up">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h2 class="text-2xl font-extrabold neon-text">Your Timetable</h2>
+            <p class="text-sm text-gray-300 mt-1">Weekly overview · Mon–Fri · 8AM–5PM</p>
+          </div>
+          <div class="flex items-center gap-3">
+            <button id="downloadPdf" class="neon-btn">Download PDF</button>
+            <button id="refreshSchedule" class="neon-btn">Refresh Schedule</button>
+            <button class="px-3 py-2 rounded-md border border-gray-700 text-sm">Compare Week</button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-6 gap-3">
+          <div class="col-span-1 text-xs text-gray-400">
+            <div class="py-2">8AM</div>
+            <div class="py-2">9AM</div>
+            <div class="py-2">10AM</div>
+            <div class="py-2">11AM</div>
+            <div class="py-2">12PM</div>
+            <div class="py-2">1PM</div>
+            <div class="py-2">2PM</div>
+            <div class="py-2">3PM</div>
+            <div class="py-2">4PM</div>
+          </div>
+          <div class="col-span-5">
+            <div class="timetable-grid">
+              <!-- Monday -->
+              <div>
+                <div class="slot" data-subject="Calculus" tabindex="0">Calculus<br/><span class="text-xs text-gray-400">AS · R101</span></div>
+                <div class="slot" data-subject="Physics" tabindex="0">Physics<br/><span class="text-xs text-gray-400">MK · R204</span></div>
+              </div>
+              <!-- Tue -->
+              <div>
+                <div class="slot" data-subject="Chemistry" tabindex="0">Chemistry<br/><span class="text-xs text-gray-400">TR · R110</span></div>
+              </div>
+              <!-- Wed -->
+              <div>
+                <div class="slot" data-subject="Algorithms" tabindex="0">Algorithms<br/><span class="text-xs text-gray-400">PR · R301</span></div>
+              </div>
+              <!-- Thu -->
+              <div>
+                <div class="slot" data-subject="Databases" tabindex="0">Databases<br/><span class="text-xs text-gray-400">LN · R212</span></div>
+              </div>
+              <!-- Fri -->
+              <div>
+                <div class="slot" data-subject="AI Lab" tabindex="0">AI Lab<br/><span class="text-xs text-gray-400">BG · Lab L1</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 🔔 Notifications -->
+      <aside class="space-y-4">
+        <div class="glass p-4 rounded-2xl fade-up">
+          <div class="flex items-center justify-between">
+            <h4 class="font-semibold">Upcoming Classes</h4>
+            <button id="markRead" class="text-sm neon-text">Mark All as Read</button>
+          </div>
+          <div class="mt-4">
+            <div class="notif type-class">
+              <div class="flex justify-between"><div>Calculus</div><div class="text-xs text-gray-400">Starts in 30m</div></div>
+              <div class="text-xs text-gray-300">R101 · Prof. A. Sharma</div>
+            </div>
+            <div class="notif type-change">
+              <div class="flex justify-between"><div>Room Change: AI Lab</div><div class="text-xs text-gray-400">Today</div></div>
+              <div class="text-xs text-gray-300">Now in Lab L1</div>
+            </div>
+            <div class="notif type-cancel">
+              <div class="flex justify-between"><div>Cancelled: Guest Lecture</div><div class="text-xs text-gray-400">1d ago</div></div>
+              <div class="text-xs text-gray-300">Rescheduled to next week</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="glass p-4 rounded-2xl fade-up">
+          <h4 class="font-semibold">Quick Stats</h4>
+          <div class="mt-3 grid grid-cols-2 gap-3 text-sm text-gray-300">
+            <div class="p-3 glass rounded-lg text-center">
+              <div class="text-xs">Attendance</div>
+              <div class="text-xl font-bold neon-text">92%</div>
+            </div>
+            <div class="p-3 glass rounded-lg text-center">
+              <div class="text-xs">Credits</div>
+              <div class="text-xl font-bold neon-text">78 / 120</div>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </main>
+
+    <!-- 💬 Footer -->
+    <footer class="text-center py-6 text-sm text-gray-400">© 2025 Timelytics — Empowering Smarter Schedules</footer>
+
+    <!-- tooltip element -->
+    <div id="tooltip" class="hidden tooltip"></div>
+
+    <script>
+      // fade-in on load
+      document.querySelectorAll('.fade-up').forEach((el,i)=> el.style.animationDelay = (i*80)+'ms');
+
+      // Tooltip logic
+      const tooltip = document.getElementById('tooltip');
+      document.querySelectorAll('.slot').forEach(slot=>{
+        slot.addEventListener('mouseenter', (e)=>{
+          const rect = slot.getBoundingClientRect();
+          tooltip.innerHTML = `<strong>${slot.dataset.subject}</strong><div class=\"text-xs text-gray-300\">Detailed info: ${slot.textContent.trim()}</div>`;
+          tooltip.style.left = (rect.right + 12)+'px';
+          tooltip.style.top = (rect.top)+'px';
+          tooltip.classList.remove('hidden');
+        });
+        slot.addEventListener('mouseleave', ()=> tooltip.classList.add('hidden'));
+        slot.addEventListener('focus', (e)=> slot.classList.add('focus'));
+        slot.addEventListener('blur', (e)=> slot.classList.remove('focus'));
+      });
+
+      // Notifications dropdown toggle
+      const notifBtn = document.getElementById('notifBtn');
+      let notifOpen = false;
+      notifBtn.addEventListener('click', ()=>{
+        notifOpen = !notifOpen;
+        notifBtn.setAttribute('aria-expanded', String(notifOpen));
+        if(notifOpen) showToast('You have new notifications'); else showToast('Notifications closed');
+      });
+
+      // mark all as read
+      document.getElementById('markRead').addEventListener('click', ()=> showToast('All notifications marked as read'));
+
+      // refresh simulation
+      const refreshBtn = document.getElementById('refreshSchedule');
+      refreshBtn.addEventListener('click', ()=>{
+        refreshBtn.disabled = true; const orig = refreshBtn.textContent; refreshBtn.textContent='Refreshing...'; refreshBtn.classList.add('animate-pulse');
+        setTimeout(()=>{ refreshBtn.disabled=false; refreshBtn.textContent=orig; refreshBtn.classList.remove('animate-pulse'); showToast('Schedule refreshed') }, 1400);
+      });
+
+      // download
+      document.getElementById('downloadPdf').addEventListener('click', ()=> { showToast('Preparing PDF — will download shortly (simulated)'); });
+
+      // toasts
+      function showToast(msg, ttl=2400){
+        const t = document.createElement('div'); t.className='toast glass'; t.innerHTML = `<div style=\"background:linear-gradient(90deg,var(--magenta),var(--blue),var(--violet));height:4px;border-radius:4px;margin:-12px -12px 8px -12px\"></div><div>${msg}</div>`; document.body.appendChild(t);
+        setTimeout(()=> t.style.opacity=0, ttl-420); setTimeout(()=> t.remove(), ttl);
+      }
+    </script>
   </body>
-  <script src="/frontend/assets/theme.js"></script>
 </html>

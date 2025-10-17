@@ -1,224 +1,384 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Timelytics — Login / Sign up</title>
-    <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;600;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-      :root{ --bg:#0a0a0a; --card-bg: rgba(20,20,30,0.6); --magenta:#ff00ff; --blue:#6a5acd; --violet:#4b0082 }
-      html,body{height:100%}
-      body{font-family:'Unbounded',system-ui,Segoe UI,Roboto,Arial;background:radial-gradient(900px 500px at 10% 20%, rgba(75,0,130,0.06), transparent), radial-gradient(900px 500px at 90% 80%, rgba(106,90,205,0.06), transparent), var(--bg); color:#e6eef8}
 
-      /* Card stage */
-      .stage{perspective:1400px}
-      .card{width:100%;max-width:450px;height:auto;transform-style:preserve-3d;transition:transform .9s cubic-bezier(.2,.9,.2,1);position:relative}
-      .card.flipped{transform:rotateY(180deg)}
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Timelytics — Login / Sign up</title>
+  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;600;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --bg: #0a0a0a;
+      --card-bg: rgba(20, 20, 30, 0.6);
+      --magenta: #ff00ff;
+      --blue: #6a5acd;
+      --violet: #4b0082
+    }
 
-      .face{position:relative;backface-visibility:hidden;border-radius:1rem;padding:2rem;background:var(--card-bg);backdrop-filter:blur(10px);box-shadow: 0 10px 30px rgba(0,0,0,0.6);}
-      .face.back{transform:rotateY(180deg);position:absolute;inset:0}
+    html,
+    body {
+      height: 100%
+    }
 
-      .neon-gradient{background:linear-gradient(90deg,var(--magenta),var(--blue),var(--violet));-webkit-background-clip:text;background-clip:text;color:transparent}
-      .neon-btn{background:linear-gradient(90deg,var(--magenta),var(--blue),var(--violet));box-shadow:0 8px 26px rgba(106,90,205,0.12)}
+    body {
+      font-family: 'Unbounded', system-ui, Segoe UI, Roboto, Arial;
+      background: radial-gradient(900px 500px at 10% 20%, rgba(75, 0, 130, 0.06), transparent), radial-gradient(900px 500px at 90% 80%, rgba(106, 90, 205, 0.06), transparent), var(--bg);
+      color: #e6eef8
+    }
 
-      /* glowing outline */
-      .glow-outline{position:relative}
-      .glow-outline:before{content:'';position:absolute;inset:0;border-radius:1rem;padding:2px;background:linear-gradient(90deg, rgba(255,0,255,0.18), rgba(106,90,205,0.14), rgba(75,0,130,0.16));-webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;filter:blur(10px);pointer-events:none}
+    /* Card stage */
+    .stage {
+      perspective: 1400px
+    }
 
-      input,select{background:#0f1114;color:#e6eef8}
-      .neon-input:focus{outline:none;box-shadow:0 0 18px rgba(255,0,255,0.12),0 0 30px rgba(106,90,205,0.08);border-color:transparent}
+    .card {
+      width: 100%;
+      max-width: 450px;
+      height: auto;
+      transform-style: preserve-3d;
+      transition: transform .9s cubic-bezier(.2, .9, .2, 1);
+      position: relative
+    }
 
-      .robot{width:88px;height:88px;border-radius:999px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,rgba(255,0,255,0.06),rgba(106,90,205,0.04));box-shadow:0 6px 28px rgba(75,0,130,0.18);margin:-64px auto 12px;animation:float 4s ease-in-out infinite}
-      @keyframes float{0%{transform:translateY(0)}50%{transform:translateY(-6px)}100%{transform:translateY(0)} }
+    .background {
+      position: absolute;
+      inset: 0;
+      height: 100%;
+      width: 90%;
+      z-index: -1;
+      transform: scale(1.2);
+    }
 
-      #particles{position:fixed;inset:0;z-index:0;pointer-events:none}
+    .card.flipped {
+      transform: rotateY(180deg)
+    }
 
-      /* small responsive tweaks */
-      @media (max-width:520px){ .card{padding:0 12px} .face{padding:1.25rem} }
-    </style>
-  </head>
-  <body>
-    <canvas id="particles" aria-hidden="true"></canvas>
+    .face {
+      position: relative;
+      backface-visibility: hidden;
+      border-radius: 1rem;
+      padding: 2rem;
+      background: var(--card-bg);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+    }
 
-    <main class="min-h-screen flex items-center justify-center px-6 py-12 stage">
-      <!-- 🌌 Flip Card Container -->
-      <div class="card glow-outline" id="card">
-        <!-- 🔹 Front (Login) -->
-        <section class="face backface-hidden face-front face rounded-2xl">
-          <div class="robot">
-            <!-- SVG robot -->
-            <svg width="56" height="56" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-              <rect x="3" y="5" width="18" height="14" rx="3" stroke="url(#g1)" stroke-width="1.2" fill="rgba(255,255,255,0.02)"/>
-              <circle cx="8.5" cy="11" r="1.2" fill="#fff"/>
-              <circle cx="15.5" cy="11" r="1.2" fill="#fff"/>
-              <defs><linearGradient id="g1" x1="0" x2="1"><stop offset="0%" stop-color="#ff00ff"/><stop offset="50%" stop-color="#6a5acd"/><stop offset="100%" stop-color="#4b0082"/></linearGradient></defs>
-            </svg>
-          </div>
+    .face.back {
+      transform: rotateY(180deg);
+      position: absolute;
+      inset: 0
+    }
 
-          <div class="px-2">
-            <h1 class="text-2xl font-extrabold neon-gradient text-center">Welcome Back to Timelytics</h1>
-            <p class="text-sm text-gray-300 text-center mt-2">Sign in to manage your classrooms and schedules instantly.</p>
+    .neon-gradient {
+      background: linear-gradient(90deg, var(--magenta), var(--blue), var(--violet));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent
+    }
 
-            <form id="loginForm" class="mt-6 space-y-4" onsubmit="event.preventDefault(); handleLogin();">
-              <!-- 🖊 Form Fields -->
-              <div>
-                <label for="email" class="block text-xs text-gray-300 mb-2">Email</label>
-                <input id="email" name="email" type="email" required placeholder="you@school.edu" class="neon-input w-full rounded-lg px-4 py-3 text-sm border border-transparent focus:ring-0">
-              </div>
+    .neon-btn {
+      background: linear-gradient(90deg, var(--magenta), var(--blue), var(--violet));
+      box-shadow: 0 8px 26px rgba(106, 90, 205, 0.12)
+    }
 
-              <div>
-                <label for="password" class="block text-xs text-gray-300 mb-2">Password</label>
-                <input id="password" name="password" type="password" required placeholder="Enter your password" class="neon-input w-full rounded-lg px-4 py-3 text-sm border border-transparent focus:ring-0">
-              </div>
+    /* glowing outline */
+    .glow-outline {
+      position: relative
+    }
 
-              <div class="flex items-center justify-between">
-                <label class="neon-check flex items-center gap-3 text-sm text-gray-300">
-                  <input type="checkbox" id="remember" name="remember">
-                  <span class="box"></span>
-                  <span class="ml-2">Remember me</span>
-                </label>
+    .glow-outline:before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 1rem;
+      padding: 2px;
+      background: linear-gradient(90deg, rgba(255, 0, 255, 0.18), rgba(106, 90, 205, 0.14), rgba(75, 0, 130, 0.16));
+      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      filter: blur(10px);
+      pointer-events: none
+    }
 
-                <a href="#" class="neon-link text-sm">Forgot password?</a>
-              </div>
+    input,
+    select {
+      background: #0f1114;
+      color: #e6eef8
+    }
 
-              <!-- 🔘 Buttons -->
-              <div class="space-y-3">
-                <button type="submit" id="loginBtn" class="neon-btn w-full rounded-lg py-3 font-semibold text-sm transform transition">Sign in</button>
-                <button type="button" id="toSignup" class="w-full rounded-lg py-2 text-sm bg-transparent" style="background:linear-gradient(90deg, rgba(255,0,255,0.06), rgba(106,90,205,0.04));">Don't have an account? <span class="neon-link">Sign Up</span></button>
-              </div>
-            </form>
+    .neon-input:focus {
+      outline: none;
+      box-shadow: 0 0 18px rgba(255, 0, 255, 0.12), 0 0 30px rgba(106, 90, 205, 0.08);
+      border-color: transparent
+    }
 
-            <footer class="text-center text-xs text-gray-400 mt-6">© 2025 Timelytics — Smart Classroom & Timetable Scheduler</footer>
-          </div>
-        </section>
+    .robot {
+      width: 88px;
+      height: 88px;
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, rgba(255, 0, 255, 0.06), rgba(106, 90, 205, 0.04));
+      box-shadow: 0 6px 28px rgba(75, 0, 130, 0.18);
+      margin: -64px auto 12px;
+      animation: float 4s ease-in-out infinite
+    }
 
-        <!-- 🔹 Back (Signup) -->
-        <section class="face back rounded-2xl">
-          <div class="robot">
-            <svg width="56" height="56" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-              <rect x="3" y="5" width="18" height="14" rx="3" stroke="url(#g2)" stroke-width="1.2" fill="rgba(255,255,255,0.02)"/>
-              <circle cx="8.5" cy="11" r="1.2" fill="#fff"/>
-              <circle cx="15.5" cy="11" r="1.2" fill="#fff"/>
-              <defs><linearGradient id="g2" x1="0" x2="1"><stop offset="0%" stop-color="#ff00ff"/><stop offset="50%" stop-color="#6a5acd"/><stop offset="100%" stop-color="#4b0082"/></linearGradient></defs>
-            </svg>
-          </div>
-
-          <div class="px-2">
-            <h1 class="text-2xl font-extrabold neon-gradient text-center">Create Your Timelytics Account</h1>
-            <p class="text-sm text-gray-300 text-center mt-2">Join Timelytics to manage classrooms and optimize schedules instantly.</p>
-
-            <form id="signupForm" class="mt-6 space-y-4" onsubmit="event.preventDefault(); handleSignup();">
-              <!-- 🖊 Form Fields -->
-              <div>
-                <label for="sname" class="block text-xs text-gray-300 mb-2">Full name</label>
-                <input id="sname" name="name" type="text" required placeholder="Your full name" class="neon-input w-full rounded-lg px-4 py-3 text-sm border border-transparent focus:ring-0">
-              </div>
-
-              <div>
-                <label for="semail" class="block text-xs text-gray-300 mb-2">Email</label>
-                <input id="semail" name="email" type="email" required placeholder="you@school.edu" class="neon-input w-full rounded-lg px-4 py-3 text-sm border border-transparent focus:ring-0">
-              </div>
-
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div>
-                  <label for="spassword" class="block text-xs text-gray-300 mb-2">Password</label>
-                  <input id="spassword" name="password" type="password" required placeholder="Create a password" class="neon-input w-full rounded-lg px-4 py-3 text-sm border border-transparent focus:ring-0">
-                </div>
-                <div>
-                  <label for="sconfirm" class="block text-xs text-gray-300 mb-2">Confirm Password</label>
-                  <input id="sconfirm" name="confirm" type="password" required placeholder="Repeat password" class="neon-input w-full rounded-lg px-4 py-3 text-sm border border-transparent focus:ring-0">
-                </div>
-              </div>
-
-              <div>
-                <label for="srole" class="block text-xs text-gray-300 mb-2">Role</label>
-                <select id="srole" name="role" class="w-full rounded-lg px-4 py-3 bg-[#0f1114] text-sm border border-transparent neon-input">
-                  <option value="student">Student</option>
-                  <option value="faculty">Faculty</option>
-                  <option value="admin">Admin</option>
-                </select>
-              </div>
-
-              <div class="flex items-center gap-3">
-                <label class="neon-check flex items-center gap-3 text-sm text-gray-300">
-                  <input type="checkbox" id="sterms" name="terms">
-                  <span class="box"></span>
-                  <span class="ml-2">I agree to <a href="#" class="neon-link">Terms & Conditions</a></span>
-                </label>
-              </div>
-
-              <!-- 🔘 Buttons -->
-              <div class="space-y-3">
-                <button type="submit" id="signupBtn" class="neon-btn w-full rounded-lg py-3 font-semibold text-sm transform transition">Sign Up</button>
-                <button type="button" id="toLogin" class="w-full rounded-lg py-2 text-sm bg-transparent" style="background:linear-gradient(90deg, rgba(255,0,255,0.06), rgba(106,90,205,0.04));">Already have an account? <span class="neon-link">Login</span></button>
-              </div>
-            </form>
-
-            <footer class="text-center text-xs text-gray-400 mt-6">© 2025 Timelytics — Smart Classroom & Timetable Scheduler</footer>
-          </div>
-        </section>
-      </div>
-    </main>
-
-    <script>
-      // Flip control
-      const card = document.getElementById('card');
-      const toSignup = document.getElementById('toSignup');
-      const toLogin = document.getElementById('toLogin');
-      const loginBtn = document.getElementById('loginBtn');
-      const signupBtn = document.getElementById('signupBtn');
-
-      toSignup && toSignup.addEventListener('click', ()=> card.classList.add('flipped'));
-      toLogin && toLogin.addEventListener('click', ()=> card.classList.remove('flipped'));
-
-      // Input interactions
-      document.querySelectorAll('.neon-input').forEach(input=>{
-        input.addEventListener('focus', ()=>{ input.style.boxShadow = '0 0 24px rgba(255,0,255,0.12), 0 0 32px rgba(106,90,205,0.08)'; input.style.border='1px solid rgba(255,255,255,0.03)'});
-        input.addEventListener('blur', ()=>{ input.style.boxShadow='none'; input.style.border='1px solid transparent'});
-      });
-
-      // Button hover effects
-      [loginBtn, signupBtn].forEach(btn=>{
-        if(!btn) return;
-        btn.addEventListener('mouseover', ()=>{ btn.style.transform='translateY(-3px) scale(1.01)'; btn.style.boxShadow='0 18px 48px rgba(106,90,205,0.18), 0 6px 20px rgba(255,0,255,0.06)'; });
-        btn.addEventListener('mouseout', ()=>{ btn.style.transform='none'; btn.style.boxShadow='0 8px 26px rgba(106,90,205,0.12)'; });
-      });
-
-      // Handlers (placeholder – replace with your API calls)
-      function handleLogin(){
-        const email = document.getElementById('email').value.trim();
-        const pwd = document.getElementById('password').value;
-        if(!email || !pwd){ flash('Please fill both email and password'); return; }
-        flash('Signing in...',1200);
-        setTimeout(()=>{ flash('Signed in — redirecting...',900); },1000);
+    @keyframes float {
+      0% {
+        transform: translateY(0)
       }
 
-      function handleSignup(){
-        const name = document.getElementById('sname').value.trim();
-        const email = document.getElementById('semail').value.trim();
-        const pw = document.getElementById('spassword').value;
-        const conf = document.getElementById('sconfirm').value;
-        const terms = document.getElementById('sterms').checked;
-        if(!name || !email || !pw || !conf){ flash('Please fill all fields'); return; }
-        if(pw !== conf){ flash('Passwords do not match'); return; }
-        if(!terms){ flash('Please accept Terms & Conditions'); return; }
-        flash('Creating account...',1200);
-        setTimeout(()=>{ flash('Account created — redirecting...',900); card.classList.remove('flipped'); },1000);
+      50% {
+        transform: translateY(-6px)
       }
 
-      function flash(msg,t=900){ const el=document.createElement('div'); el.textContent=msg; el.style.cssText='position:fixed;left:50%;transform:translateX(-50%);bottom:28px;background:rgba(255,255,255,0.04);padding:10px 16px;border-radius:999px;color:#e6eef8;font-weight:600;backdrop-filter:blur(6px);box-shadow:0 6px 18px rgba(0,0,0,0.6);z-index:60;'; document.body.appendChild(el); setTimeout(()=>el.style.opacity=0,t-120); setTimeout(()=>el.remove(),t+80); }
+      100% {
+        transform: translateY(0)
+      }
+    }
 
-      // Particles (lightweight)
-      (function(){
-        const canvas = document.getElementById('particles'); if(!canvas) return; const ctx = canvas.getContext('2d'); let w,h,particles=[];
-        function resize(){ w=canvas.width=innerWidth; h=canvas.height=innerHeight }
-        window.addEventListener('resize', resize); resize();
-        function init(){ particles=[]; const count=Math.floor((w*h)/90000); for(let i=0;i<count;i++) particles.push({x:Math.random()*w,y:Math.random()*h,r:Math.random()*1.6+0.4,vx:(Math.random()-0.5)/2,vy:(Math.random()-0.5)/2}); }
-        init();
-        function step(){ ctx.clearRect(0,0,w,h); for(const p of particles){ p.x+=p.vx; p.y+=p.vy; if(p.x<0) p.x=w; if(p.x>w) p.x=0; if(p.y<0) p.y=h; if(p.y>h) p.y=0; const g=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.r*10); g.addColorStop(0,'rgba(106,90,205,0.12)'); g.addColorStop(1,'rgba(75,0,130,0)'); ctx.fillStyle=g; ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill(); } requestAnimationFrame(step); }
-        step();
-      })();
-    </script>
-  </body>
+    #particles {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none
+    }
+
+    /* small responsive tweaks */
+    @media (max-width:520px) {
+      .card {
+        padding: 0 12px
+      }
+
+      .face {
+        padding: 1.25rem
+      }
+    }
+  </style>
+  <script type="module" src="https://unpkg.com/@splinetool/viewer@1.10.81/build/spline-viewer.js"></script>
+</head>
+
+<body>
+
+  <spline-viewer class="background" url="https://prod.spline.design/ssFBItAis0Ryw7KI/scene.splinecode"></spline-viewer>
+  <canvas id="particles" aria-hidden="true"></canvas>
+
+  <main class="min-h-screen flex items-center justify-center px-6 py-12 stage">
+    <!-- 🌌 Flip Card Container -->
+    <div class="card glow-outline" id="card">
+      <!-- 🔹 Front (Login) -->
+      <section class="face backface-hidden face-front face rounded-2xl">
+        <div class="robot">
+          <!-- SVG robot -->
+          <svg width="56" height="56" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true">
+            <rect x="3" y="5" width="18" height="14" rx="3" stroke="url(#g1)" stroke-width="1.2"
+              fill="rgba(255,255,255,0.02)" />
+            <circle cx="8.5" cy="11" r="1.2" fill="#fff" />
+            <circle cx="15.5" cy="11" r="1.2" fill="#fff" />
+            <defs>
+              <linearGradient id="g1" x1="0" x2="1">
+                <stop offset="0%" stop-color="#ff00ff" />
+                <stop offset="50%" stop-color="#6a5acd" />
+                <stop offset="100%" stop-color="#4b0082" />
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+
+        <div class="px-2">
+          <h1 class="text-2xl font-extrabold neon-gradient text-center">Welcome Back to Timelytics</h1>
+          <p class="text-sm text-gray-300 text-center mt-2">Sign in to manage your classrooms and schedules instantly.
+          </p>
+
+          <form id="loginForm" class="mt-6 space-y-4" onsubmit="event.preventDefault(); handleLogin();">
+            <!-- 🖊 Form Fields -->
+            <div>
+              <label for="email" class="block text-xs text-gray-300 mb-2">Email</label>
+              <input id="email" name="email" type="email" required placeholder="you@school.edu"
+                class="neon-input w-full rounded-lg px-4 py-3 text-sm border border-transparent focus:ring-0">
+            </div>
+
+            <div>
+              <label for="password" class="block text-xs text-gray-300 mb-2">Password</label>
+              <input id="password" name="password" type="password" required placeholder="Enter your password"
+                class="neon-input w-full rounded-lg px-4 py-3 text-sm border border-transparent focus:ring-0">
+            </div>
+
+            <div class="flex items-center justify-between">
+              <label class="neon-check flex items-center gap-3 text-sm text-gray-300">
+                <input type="checkbox" id="remember" name="remember">
+                <span class="box"></span>
+                <span class="ml-2">Remember me</span>
+              </label>
+
+              <a href="#" class="neon-link text-sm">Forgot password?</a>
+            </div>
+
+            <!-- 🔘 Buttons -->
+            <div class="space-y-3">
+              <button type="submit" id="loginBtn"
+                class="neon-btn w-full rounded-lg py-3 font-semibold text-sm transform transition">Sign in</button>
+              <button type="button" id="toSignup" class="w-full rounded-lg py-2 text-sm bg-transparent"
+                style="background:linear-gradient(90deg, rgba(255,0,255,0.06), rgba(106,90,205,0.04));">Don't have an
+                account? <span class="neon-link">Sign Up</span></button>
+            </div>
+          </form>
+
+          <footer class="text-center text-xs text-gray-400 mt-6">© 2025 Timelytics — Smart Classroom & Timetable
+            Scheduler</footer>
+        </div>
+      </section>
+
+      <!-- 🔹 Back (Signup) -->
+      <section class="face back rounded-2xl">
+        <div class="robot">
+          <svg width="56" height="56" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true">
+            <rect x="3" y="5" width="18" height="14" rx="3" stroke="url(#g2)" stroke-width="1.2"
+              fill="rgba(255,255,255,0.02)" />
+            <circle cx="8.5" cy="11" r="1.2" fill="#fff" />
+            <circle cx="15.5" cy="11" r="1.2" fill="#fff" />
+            <defs>
+              <linearGradient id="g2" x1="0" x2="1">
+                <stop offset="0%" stop-color="#ff00ff" />
+                <stop offset="50%" stop-color="#6a5acd" />
+                <stop offset="100%" stop-color="#4b0082" />
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+
+        <div class="px-2">
+          <h1 class="text-2xl font-extrabold neon-gradient text-center">Create Your Timelytics Account</h1>
+          <p class="text-sm text-gray-300 text-center mt-2">Join Timelytics to manage classrooms and optimize schedules
+            instantly.</p>
+
+          <form id="signupForm" class="mt-6 space-y-4" onsubmit="event.preventDefault(); handleSignup();">
+            <!-- 🖊 Form Fields -->
+            <div>
+              <label for="sname" class="block text-xs text-gray-300 mb-2">Full name</label>
+              <input id="sname" name="name" type="text" required placeholder="Your full name"
+                class="neon-input w-full rounded-lg px-4 py-3 text-sm border border-transparent focus:ring-0">
+            </div>
+
+            <div>
+              <label for="semail" class="block text-xs text-gray-300 mb-2">Email</label>
+              <input id="semail" name="email" type="email" required placeholder="you@school.edu"
+                class="neon-input w-full rounded-lg px-4 py-3 text-sm border border-transparent focus:ring-0">
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div>
+                <label for="spassword" class="block text-xs text-gray-300 mb-2">Password</label>
+                <input id="spassword" name="password" type="password" required placeholder="Create a password"
+                  class="neon-input w-full rounded-lg px-4 py-3 text-sm border border-transparent focus:ring-0">
+              </div>
+              <div>
+                <label for="sconfirm" class="block text-xs text-gray-300 mb-2">Confirm Password</label>
+                <input id="sconfirm" name="confirm" type="password" required placeholder="Repeat password"
+                  class="neon-input w-full rounded-lg px-4 py-3 text-sm border border-transparent focus:ring-0">
+              </div>
+            </div>
+
+            <div>
+              <label for="srole" class="block text-xs text-gray-300 mb-2">Role</label>
+              <select id="srole" name="role"
+                class="w-full rounded-lg px-4 py-3 bg-[#0f1114] text-sm border border-transparent neon-input">
+                <option value="student">Student</option>
+                <option value="faculty">Faculty</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
+
+            <div class="flex items-center gap-3">
+              <label class="neon-check flex items-center gap-3 text-sm text-gray-300">
+                <input type="checkbox" id="sterms" name="terms">
+                <span class="box"></span>
+                <span class="ml-2">I agree to <a href="#" class="neon-link">Terms & Conditions</a></span>
+              </label>
+            </div>
+
+            <!-- 🔘 Buttons -->
+            <div class="space-y-3">
+              <button type="submit" id="signupBtn"
+                class="neon-btn w-full rounded-lg py-3 font-semibold text-sm transform transition">Sign Up</button>
+              <button type="button" id="toLogin" class="w-full rounded-lg py-2 text-sm bg-transparent"
+                style="background:linear-gradient(90deg, rgba(255,0,255,0.06), rgba(106,90,205,0.04));">Already have an
+                account? <span class="neon-link">Login</span></button>
+            </div>
+          </form>
+
+          <footer class="text-center text-xs text-gray-400 mt-6">© 2025 Timelytics — Smart Classroom & Timetable
+            Scheduler</footer>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    // Flip control
+    const card = document.getElementById('card');
+    const toSignup = document.getElementById('toSignup');
+    const toLogin = document.getElementById('toLogin');
+    const loginBtn = document.getElementById('loginBtn');
+    const signupBtn = document.getElementById('signupBtn');
+
+    toSignup && toSignup.addEventListener('click', () => card.classList.add('flipped'));
+    toLogin && toLogin.addEventListener('click', () => card.classList.remove('flipped'));
+
+    // Input interactions
+    document.querySelectorAll('.neon-input').forEach(input => {
+      input.addEventListener('focus', () => { input.style.boxShadow = '0 0 24px rgba(255,0,255,0.12), 0 0 32px rgba(106,90,205,0.08)'; input.style.border = '1px solid rgba(255,255,255,0.03)' });
+      input.addEventListener('blur', () => { input.style.boxShadow = 'none'; input.style.border = '1px solid transparent' });
+    });
+
+    // Button hover effects
+    [loginBtn, signupBtn].forEach(btn => {
+      if (!btn) return;
+      btn.addEventListener('mouseover', () => { btn.style.transform = 'translateY(-3px) scale(1.01)'; btn.style.boxShadow = '0 18px 48px rgba(106,90,205,0.18), 0 6px 20px rgba(255,0,255,0.06)'; });
+      btn.addEventListener('mouseout', () => { btn.style.transform = 'none'; btn.style.boxShadow = '0 8px 26px rgba(106,90,205,0.12)'; });
+    });
+
+    // Handlers (placeholder – replace with your API calls)
+    function handleLogin() {
+      const email = document.getElementById('email').value.trim();
+      const pwd = document.getElementById('password').value;
+      if (!email || !pwd) { flash('Please fill both email and password'); return; }
+      flash('Signing in...', 1200);
+      setTimeout(() => { flash('Signed in — redirecting...', 900); }, 1000);
+    }
+
+    function handleSignup() {
+      const name = document.getElementById('sname').value.trim();
+      const email = document.getElementById('semail').value.trim();
+      const pw = document.getElementById('spassword').value;
+      const conf = document.getElementById('sconfirm').value;
+      const terms = document.getElementById('sterms').checked;
+      if (!name || !email || !pw || !conf) { flash('Please fill all fields'); return; }
+      if (pw !== conf) { flash('Passwords do not match'); return; }
+      if (!terms) { flash('Please accept Terms & Conditions'); return; }
+      flash('Creating account...', 1200);
+      setTimeout(() => { flash('Account created — redirecting...', 900); card.classList.remove('flipped'); }, 1000);
+    }
+
+    function flash(msg, t = 900) { const el = document.createElement('div'); el.textContent = msg; el.style.cssText = 'position:fixed;left:50%;transform:translateX(-50%);bottom:28px;background:rgba(255,255,255,0.04);padding:10px 16px;border-radius:999px;color:#e6eef8;font-weight:600;backdrop-filter:blur(6px);box-shadow:0 6px 18px rgba(0,0,0,0.6);z-index:60;'; document.body.appendChild(el); setTimeout(() => el.style.opacity = 0, t - 120); setTimeout(() => el.remove(), t + 80); }
+
+    // Particles (lightweight)
+    (function () {
+      const canvas = document.getElementById('particles'); if (!canvas) return; const ctx = canvas.getContext('2d'); let w, h, particles = [];
+      function resize() { w = canvas.width = innerWidth; h = canvas.height = innerHeight }
+      window.addEventListener('resize', resize); resize();
+      function init() { particles = []; const count = Math.floor((w * h) / 90000); for (let i = 0; i < count; i++) particles.push({ x: Math.random() * w, y: Math.random() * h, r: Math.random() * 1.6 + 0.4, vx: (Math.random() - 0.5) / 2, vy: (Math.random() - 0.5) / 2 }); }
+      init();
+      function step() { ctx.clearRect(0, 0, w, h); for (const p of particles) { p.x += p.vx; p.y += p.vy; if (p.x < 0) p.x = w; if (p.x > w) p.x = 0; if (p.y < 0) p.y = h; if (p.y > h) p.y = 0; const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r * 10); g.addColorStop(0, 'rgba(106,90,205,0.12)'); g.addColorStop(1, 'rgba(75,0,130,0)'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill(); } requestAnimationFrame(step); }
+      step();
+    })();
+  </script>
+</body>
+
 </html>
