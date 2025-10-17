@@ -394,6 +394,23 @@
       z-index: 1;
       pointer-events: none
     }
+
+     footer.site-footer {
+      margin-top: 48px;
+      padding: 28px 1rem 48px;
+      text-align: center;
+      color: var(--muted);
+    }
+
+    .footer-line {
+      height: 2px;
+      width: 100%;
+      max-width: 900px;
+      margin: 0 auto 12px;
+      border-radius: 3px;
+      background: linear-gradient(90deg, var(--neon), var(--violet), var(--magenta));
+      box-shadow: 0 10px 30px rgba(138, 0, 255, 0.06);
+    }
   </style>
 </head>
 
@@ -505,6 +522,11 @@
       </div>
     </aside>
   </main>
+
+  <footer class="site-footer">
+    <div class="footer-line"></div>
+    <div class="footer-text">© 2025 Timelytics | Built with ❤️ by TANTRIKS.</div>
+  </footer>
 
   <div id="tooltip" class="toast" role="status" aria-live="polite"
     style="display:none;position:fixed;left:18px;bottom:100px;min-width:260px"></div>
