@@ -1,0 +1,23 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Student  Timelytics</title>
+    <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="min-h-screen bg-surfaceGray p-6">
+    <div class="absolute top-4 right-4">
+      <button id="themeToggle" aria-pressed="false" aria-label="Toggle dark mode" onclick="(window.TimelyticsTheme||window.TimelyticsTheme)?.toggleTheme()" class="p-2 rounded-2xl bg-white/60 hover:bg-white/80 transition relative">
+        <span class="icon-sun" style="display:none;">☀️</span>
+        <span class="icon-moon">🌙</span>
+      </button>
+    </div>
+    <div class="max-w-4xl mx-auto bg-white p-6 rounded shadow">
+      <h1 class="text-2xl font-bold">Student Dashboard</h1>
+      <p class="mt-4">Timetable view and elective selection will appear here. This is a placeholder page for the demo.</p>
+    </div>
+  </body>
+  <script src="/frontend/assets/theme.js"></script>
+</html>

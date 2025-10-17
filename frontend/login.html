@@ -1,0 +1,46 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Login — Timelytics</title>
+    <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="min-h-screen flex items-center justify-center bg-surfaceGray">
+    <div class="absolute top-4 right-4">
+      <button id="themeToggle" aria-pressed="false" aria-label="Toggle dark mode" onclick="(window.TimelyticsTheme||window.TimelyticsTheme)?.toggleTheme()" class="p-2 rounded-2xl bg-white/60 hover:bg-white/80 transition relative">
+        <span class="icon-sun" style="display:none;">☀️</span>
+        <span class="icon-moon">🌙</span>
+      </button>
+    </div>
+    <div class="bg-white p-8 rounded shadow w-full max-w-md">
+      <h2 class="text-2xl font-semibold">Role-based Login</h2>
+      <form id="loginForm" class="mt-4">
+        <label class="block">Email<input id="email" class="w-full border p-2 mt-1" /></label>
+        <label class="block mt-3">Password<input id="password" type="password" class="w-full border p-2 mt-1" /></label>
+        <label class="block mt-3">Role<select id="role" class="w-full border p-2 mt-1"><option>admin</option><option>faculty</option><option>student</option></select></label>
+        <button class="mt-4 w-full bg-primary text-white p-2 rounded" type="button" onclick="login()">Sign in</button>
+      </form>
+    </div>
+  <script src="/frontend/assets/theme.js"></script>
+  <script>
+      async function login(){
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        if(!email || !password) return alert('Please enter credentials');
+        const res = await fetch('/api/auth/login', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email, password }) });
+        const data = await res.json();
+        if(data.token){
+          localStorage.setItem('token', data.token);
+          // fetch user info
+          const meRes = await fetch('/api/auth/me', { headers: { Authorization: 'Bearer ' + data.token } });
+          const me = await meRes.json();
+          if(me.role === 'admin') window.location.href = '/frontend/admin.html';
+          else if(me.role === 'faculty') window.location.href = '/frontend/faculty.html';
+          else window.location.href = '/frontend/student.html';
+        } else alert('Login failed');
+      }
+    </script>
+  </body>
+</html>

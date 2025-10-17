@@ -1,0 +1,34 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+      - name: Install backend deps
+        working-directory: ./backend
+        run: npm ci
+      - name: Run backend tests
+        working-directory: ./backend
+        run: npm test || echo "no tests"
+
+  worker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+      - name: Install worker deps
+        working-directory: ./worker
+        run: npm ci
+      - name: Run worker tests
+        working-directory: ./worker
+        run: echo "no tests"

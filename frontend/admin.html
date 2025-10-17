@@ -1,0 +1,190 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Admin — Timelytics</title>
+    <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="min-h-screen bg-surfaceGray p-6">
+    <div class="max-w-6xl mx-auto">
+      <header class="flex justify-between items-center mb-6">
+        <h1 class="text-3xl font-extrabold text-#202124">Admin Dashboard</h1>
+        <div class="flex gap-2 items-center">
+          <button id="themeToggle" aria-pressed="false" aria-label="Toggle dark mode" onclick="(window.TimelyticsTheme||window.TimelyticsTheme)?.toggleTheme()" class="p-2 rounded-2xl bg-white/60 hover:bg-white/80 transition relative mr-2">
+            <span class="icon-sun" style="display:none;">☀️</span>
+            <span class="icon-moon">🌙</span>
+          </button>
+          <button id="genBtn" onclick="generate()" class="px-4 py-2 bg-[#1A73E8] text-white rounded shadow hover:shadow-lg transition">Generate Timetable</button>
+        </div>
+      </header>
+
+      <section class="grid grid-cols-4 gap-4 mb-6">
+        <div class="p-4 rounded-xl bg-white/70 backdrop-blur-md shadow">
+          <div class="text-sm text-gray-600">Total Teachers</div>
+          <div id="totalTeachers" class="text-2xl font-semibold">-</div>
+        </div>
+        <div class="p-4 rounded-xl bg-white/70 backdrop-blur-md shadow">
+          <div class="text-sm text-gray-600">Rooms</div>
+          <div id="rooms" class="text-2xl font-semibold">-</div>
+        </div>
+        <div class="p-4 rounded-xl bg-white/70 backdrop-blur-md shadow">
+          <div class="text-sm text-gray-600">Courses</div>
+          <div id="courses" class="text-2xl font-semibold">-</div>
+        </div>
+        <div class="p-4 rounded-xl bg-white/70 backdrop-blur-md shadow">
+          <div class="text-sm text-gray-600">Scheduled</div>
+          <div id="scheduled" class="text-2xl font-semibold">-</div>
+        </div>
+      </section>
+
+      <section id="results" class="bg-white/80 p-4 rounded shadow">
+        <h2 class="font-semibold">Activity</h2>
+        <div id="out" class="mt-2 text-sm text-gray-700"></div>
+      </section>
+
+      <section class="mt-6 bg-white/80 p-4 rounded shadow">
+        <div class="flex justify-between items-center">
+          <h2 class="font-semibold">Timetable Preview</h2>
+          <div class="flex gap-2">
+            <button onclick="loadTimetable()" class="px-3 py-1 bg-[#1A73E8] text-white rounded text-sm">Refresh</button>
+            <button onclick="renderGrid()" class="px-3 py-1 bg-gray-200 rounded text-sm">Open Editor</button>
+          </div>
+        </div>
+        <div id="timetablePreview" class="mt-4"></div>
+        <div id="timetableGrid" class="mt-4 hidden"></div>
+      </section>
+    </div>
+  <script src="/frontend/assets/theme.js"></script>
+  <script>
+      async function loadDashboard(){
+        try{
+          const res = await fetch('/api/admin/dashboard');
+          const d = await res.json();
+          document.getElementById('totalTeachers').innerText = d.totalTeachers;
+          document.getElementById('rooms').innerText = d.rooms;
+          document.getElementById('courses').innerText = d.courses;
+          document.getElementById('scheduled').innerText = d.scheduledSessions;
+        }catch(e){ console.error(e); }
+      }
+
+      async function generate(){
+        const btn = document.getElementById('genBtn');
+        btn.disabled = true; btn.innerText = 'Queued...';
+        try{
+          const res = await fetch('/api/schedule/generate', { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify({ options:{} }) });
+          const data = await res.json();
+          document.getElementById('out').innerText = 'Queued job ' + data.taskId;
+        }catch(e){ document.getElementById('out').innerText = 'Error'; }
+        btn.disabled = false; btn.innerText = 'Generate Timetable';
+      }
+
+      async function loadTimetable(){
+        try{
+          const res = await fetch('/api/schedule');
+          const list = await res.json();
+          const container = document.getElementById('timetablePreview');
+          if(!list || list.length===0){ container.innerHTML = '<div class="text-sm text-gray-500">No scheduled sessions yet</div>'; return; }
+          // build a small table
+          const rows = list.slice(0,12).map(r => `<div class="p-2 border-b"><strong>${r.day} ${r.timeSlot}</strong> — ${r.subject.name || r.subject} in ${r.room.name || r.room} (${r.explain?.reason||''})</div>`).join('');
+          container.innerHTML = `<div class="divide-y">${rows}</div>`;
+        }catch(e){ console.error(e); }
+      }
+
+      // SSE notifications
+      function connectEvents(){
+        try{
+          const s = new EventSource('/api/events');
+          s.onmessage = (ev) => {
+            try{
+              const data = JSON.parse(ev.data);
+              if(data.type === 'notification' || data.payload){
+                const payload = data.payload || data;
+                const out = document.getElementById('out');
+                const time = new Date(payload.createdAt || Date.now()).toLocaleTimeString();
+                out.innerHTML = `<div class="p-2 border-b"><strong>${payload.title || 'Notification'}</strong> <span class="text-xs text-gray-500">${time}</span><div class="text-sm">${payload.body||''}</div></div>` + out.innerHTML;
+              }
+            }catch(e){ console.error('evt parse', e); }
+          };
+        }catch(e){ console.warn('SSE failed', e); }
+      }
+
+      window.addEventListener('load', () => { loadDashboard(); loadTimetable(); connectEvents(); });
+
+      // --- Drag & Drop Timetable Editor ---
+      const DAYS = ['Mon','Tue','Wed','Thu','Fri'];
+      const TIMES = ['8','9','10','11','12','13','14','15','16'];
+      let currentTimetable = [];
+
+      function renderGrid(){
+        const grid = document.getElementById('timetableGrid');
+        grid.classList.remove('hidden');
+        grid.innerHTML = '';
+        const table = document.createElement('div');
+        table.className = 'grid gap-1';
+        // header
+        const header = document.createElement('div'); header.className = 'grid grid-cols-' + (DAYS.length+1) + ' gap-1 mb-2';
+        header.innerHTML = `<div></div>` + DAYS.map(d => `<div class="p-2 bg-gray-100 rounded text-center font-medium">${d}</div>`).join('');
+        grid.appendChild(header);
+
+        for(const t of TIMES){
+          const row = document.createElement('div');
+          row.className = 'grid grid-cols-' + (DAYS.length+1) + ' gap-1 items-stretch';
+          const timeCell = document.createElement('div'); timeCell.className = 'p-2 bg-gray-50 rounded'; timeCell.innerText = t + ':00';
+          row.appendChild(timeCell);
+          for(const d of DAYS){
+            const cell = document.createElement('div');
+            cell.className = 'p-2 bg-white border rounded min-h-[56px]';
+            cell.dataset.day = d; cell.dataset.time = t;
+            cell.ondragover = (ev)=> ev.preventDefault();
+            cell.ondrop = async (ev)=>{
+              ev.preventDefault();
+              const id = ev.dataTransfer.getData('text/plain');
+              if(!id) return;
+              // call override API
+              const body = { id, day: d, timeSlot: t };
+              const token = localStorage.getItem('token');
+              const res = await fetch('/api/schedule/override', { method: 'POST', headers: { 'Content-Type':'application/json', Authorization: token?('Bearer '+token):'' }, body: JSON.stringify(body) });
+              const data = await res.json();
+              if(res.ok){
+                loadTimetable(); renderGrid();
+                alert('Moved');
+              }else{
+                alert('Conflict: ' + (data.error||'unknown'));
+              }
+            };
+            row.appendChild(cell);
+          }
+          grid.appendChild(row);
+        }
+
+        // place items
+        for(const item of currentTimetable){
+          const selector = `[data-day="${item.day}"][data-time="${item.timeSlot}"]`;
+          const cell = grid.querySelector(selector);
+          if(cell){
+            const el = document.createElement('div');
+            el.className = 'p-2 bg-[#1A73E8] text-white rounded cursor-move';
+            el.draggable = true; el.dataset.id = item._id;
+            el.innerText = `${item.subject.name || item.subject} @ ${item.room.name || item.room}`;
+            el.ondragstart = (ev)=> { ev.dataTransfer.setData('text/plain', item._id); };
+            cell.appendChild(el);
+          }
+        }
+      }
+
+      async function loadTimetable(){
+        try{
+          const res = await fetch('/api/schedule');
+          const list = await res.json();
+          currentTimetable = list.map(x => ({ _id: x._id, day: x.day, timeSlot: x.timeSlot, subject: x.subject, room: x.room, explain: x.explain }));
+          const container = document.getElementById('timetablePreview');
+          if(!list || list.length===0){ container.innerHTML = '<div class="text-sm text-gray-500">No scheduled sessions yet</div>'; return; }
+          const rows = list.slice(0,12).map(r => `<div class="p-2 border-b"><strong>${r.day} ${r.timeSlot}</strong> — ${r.subject.name || r.subject} in ${r.room.name || r.room} <div class="text-xs text-gray-500">${r.explain?.reason||''}</div></div>`).join('');
+          container.innerHTML = `<div class="divide-y">${rows}</div>`;
+        }catch(e){ console.error(e); }
+      }
+    </script>
+  </body>
+</html>

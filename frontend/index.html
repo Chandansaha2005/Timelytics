@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Timelytics — Smarter Schedules. Happier Campuses.</title>
+  <meta name="description"
+    content="Timelytics automates timetable creation, detects conflicts, and optimizes faculty workloads with beautiful dashboards and explainable scheduling." />
+  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;600;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      /* dark defaults for landing page */
+      --primary: #390be0;
+      --accent-red: #FF8A80;
+      --accent-yellow: #FFD166;
+      --accent-green: #7EE787;
+      --surface: #0F1724;
+      --text: #E6EEF3;
+      --bg-gradient: linear-gradient(180deg, #071033 0%, #07111a 60%, #02120a 100%);
+      --glass-bg: rgba(7, 9, 14, 0.6);
+    }
+
+    html,
+    body {
+      height: 100%;
+    }
+
+    body {
+      font-family: 'Unbounded', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+      color: var(--text);
+      background: var(--bg-gradient);
+    }
+
+    .background {
+      position: absolute;
+      /* positioned within its wrapper */
+      right: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: -1;
+      transform: scale(1.2);
+    }
+
+    .glass {
+      background: var(--glass-bg);
+      backdrop-filter: blur(6px);
+      border-radius: 1rem;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .blur-top {
+      backdrop-filter: blur(8px);
+    }
+
+    .nav-scrolled {
+      background: rgba(255, 255, 255, 0.95);
+      box-shadow: 0 6px 18px rgba(16, 24, 40, 0.08);
+    }
+
+    .ripple {
+      position: absolute;
+      border-radius: 9999px;
+      transform: scale(0);
+      background: rgba(255, 255, 255, 0.6);
+      animation: ripple 600ms linear;
+      pointer-events: none;
+    }
+
+    @keyframes ripple {
+      to {
+        transform: scale(4);
+        opacity: 0;
+      }
+    }
+
+    .fade-in {
+      transform: translateY(20px);
+      opacity: 0;
+      transition: all 600ms cubic-bezier(.2, .9, .2, 1);
+    }
+
+    .fade-in.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  </style>
+  <script type="module" src="https://unpkg.com/@splinetool/viewer@1.10.81/build/spline-viewer.js"></script>
+
+</head>
+
+<body>
+  <spline-viewer class="background" url="https://prod.spline.design/pxQ14UiMZo1dIacN/scene.splinecode"></spline-viewer>
+
+  <!-- 🌟 Header (Navigation Bar) -->
+  <header id="topNav" class="fixed top-0 left-0 right-0 z-50 px-6 py-3 transition-all duration-300">
+    <nav class="max-w-7xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-6">
+        <a href="#" class="text-xl font-extrabold" aria-label="Timelytics logo">Timelytics</a>
+        <ul class="hidden md:flex items-center gap-6 text-sm text-gray-700">
+          <li><a href="#hero" class="hover:underline">Home</a></li>
+          <li><a href="#features" class="hover:underline">Features</a></li>
+          <li><a href="#about" class="hover:underline">About</a></li>
+          <li><a href="#contact" class="hover:underline">Contact</a></li>
+        </ul>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <a href="/frontend/login.html"
+          class="hidden sm:inline-block px-4 py-2 rounded-2xl text-sm font-medium text-gray-700 hover:bg-gray-100 transition">Login</a>
+        <button id="getStarted"
+          class="relative inline-flex items-center gap-2 px-4 py-2 rounded-2xl text-sm font-semibold text-white"
+          style="background:var(--primary);">Get Started</button>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Decorative blobs -->
+  <div aria-hidden="true" class="pointer-events-none">
+    <div class="absolute -left-16 -top-16 w-72 h-72 rounded-full bg-[rgba(26,115,232,0.12)] blur-3xl"></div>
+    <div class="absolute right-0 top-24 w-56 h-56 rounded-full bg-[rgba(52,168,83,0.08)] blur-2xl"></div>
+    <div class="absolute left-10 bottom-10 w-40 h-40 rounded-full bg-[rgba(251,188,5,0.06)] blur-2xl"></div>
+  </div>
+
+  <main class="pt-24">
+
+    <!-- 🌟 Hero Section -->
+    <section id="hero" class="max-w-7xl mx-auto px-6 py-16 md:py-24 grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+      <div>
+        <h1 class="text-3xl md:text-5xl font-extrabold leading-tight" style="color:var(--text);">Smarter Schedules.
+          <span style="color:var(--primary)">Happier Campuses.</span>
+        </h1>
+        <p class="mt-6 text-gray-700 max-w-xl">Timelytics automates timetable creation, detects conflicts, and optimizes
+          faculty workloads — all with a click. Beautiful dashboards, explainable decisions, and real-time updates.</p>
+
+        <div class="mt-8 flex flex-wrap gap-4">
+          <a href="#features"
+            class="btn-try inline-flex items-center gap-3 px-5 py-3 rounded-2xl text-white font-semibold"
+            style="background:var(--primary);">Try Now</a>
+          <a href="#about"
+            class="btn-learn inline-flex items-center gap-3 px-5 py-3 rounded-2xl border border-gray-200 text-gray-700">Learn
+            More</a>
+        </div>
+
+        <div class="mt-8 flex gap-6">
+          <div class="p-4 rounded-2xl shadow-sm" style="background:var(--glass-bg);">
+            <div class="text-sm text-gray-300">AI Scheduling</div>
+            <div class="text-lg font-semibold">Instant optimization</div>
+          </div>
+          <div class="p-4 rounded-2xl shadow-sm" style="background:var(--glass-bg);">
+            <div class="text-sm text-gray-300">Real-Time</div>
+            <div class="text-lg font-semibold">Push updates</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="relative">
+        <!-- Spline model placed on the right side; keeps original spline viewer URL -->
+        <div class="mx-auto w-full max-w-md relative">
+        </div>
+      </div>
+    </section>
+
+    <!-- 💡 Features Section -->
+    <section id="features" class="max-w-7xl mx-auto px-6 py-12">
+      <h2 class="text-2xl font-bold mb-6">Powerful features built for institutions</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <article class="feature-card fade-in p-6 rounded-2xl shadow hover:shadow-lg hover:scale-105 transition"
+          tabindex="0" style="background:var(--glass-bg);">
+          <div class="text-3xl mb-3">🤖</div>
+          <h3 class="font-semibold">AI Scheduling</h3>
+          <p class="mt-2 text-sm text-gray-300">Generate optimized timetables instantly.</p>
+        </article>
+
+        <article class="feature-card fade-in p-6 rounded-2xl shadow hover:shadow-lg hover:scale-105 transition"
+          tabindex="0" style="background:var(--glass-bg);">
+          <div class="text-3xl mb-3">✅</div>
+          <h3 class="font-semibold">Conflict-Free Planning</h3>
+          <p class="mt-2 text-sm text-gray-300">No overlaps, no chaos.</p>
+        </article>
+
+        <article class="feature-card fade-in p-6 rounded-2xl shadow hover:shadow-lg hover:scale-105 transition"
+          tabindex="0" style="background:var(--glass-bg);">
+          <div class="text-3xl mb-3">🔔</div>
+          <h3 class="font-semibold">Real-Time Updates</h3>
+          <p class="mt-2 text-sm text-gray-300">Changes sync across all dashboards.</p>
+        </article>
+
+        <article class="feature-card fade-in p-6 rounded-2xl shadow hover:shadow-lg hover:scale-105 transition"
+          tabindex="0" style="background:var(--glass-bg);">
+          <div class="text-3xl mb-3">📊</div>
+          <h3 class="font-semibold">Beautiful Analytics</h3>
+          <p class="mt-2 text-sm text-gray-300">Insights that improve productivity.</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- 💬 Testimonial / Quote Section -->
+    <section id="about" class="max-w-4xl mx-auto px-6 py-12">
+      <div class="glass p-8 rounded-2xl border">
+        <blockquote class="text-xl md:text-2xl italic">“Finally, a timetable system that just works. Timelytics saved
+          our entire academic week.”</blockquote>
+        <cite class="block mt-4 text-sm text-gray-600">– Principal, MCKV Institute of Engineering</cite>
+      </div>
+    </section>
+
+    <!-- 📞 Footer -->
+    <footer id="contact" class="mt-12 bg-white/90 border-t">
+      <div class="max-w-7xl mx-auto px-6 py-12 grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div>
+          <h4 class="font-bold">About</h4>
+          <p class="mt-2 text-sm text-gray-600">Timelytics is an intelligent timetable and classroom management platform
+            focused on explainability and ease-of-use.</p>
+        </div>
+
+        <div>
+          <h4 class="font-bold">Quick Links</h4>
+          <ul class="mt-2 text-sm text-gray-600 space-y-1">
+            <li><a href="#features" class="hover:underline">Features</a></li>
+            <li><a href="#about" class="hover:underline">About</a></li>
+            <li><a href="#contact" class="hover:underline">Contact</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="font-bold">Contact</h4>
+          <p class="mt-2 text-sm text-gray-600">hello@timelytics.example</p>
+          <p class="mt-2 text-sm text-gray-600">© 2025 Timelytics — Built with ❤️ for smarter institutions.</p>
+        </div>
+      </div>
+    </footer>
+
+  </main>
+
+  <!-- Inline JS: smooth scroll, navbar behavior, ripple effect, intersection observer animations -->
+  <script>
+    // Smooth scroll for internal links
+    document.querySelectorAll('a[href^="#"]').forEach(a => {
+      a.addEventListener('click', (e) => {
+        const href = a.getAttribute('href');
+        if (href.length > 1) {
+          e.preventDefault();
+          document.querySelector(href).scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    });
+
+    // Navbar: add class on scroll
+    const nav = document.getElementById('topNav');
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 16) nav.classList.add('nav-scrolled'); else nav.classList.remove('nav-scrolled');
+    });
+
+    // Button ripple effect
+    function rippleEffect(e) {
+      const btn = e.currentTarget;
+      const rect = btn.getBoundingClientRect();
+      const span = document.createElement('span');
+      const size = Math.max(rect.width, rect.height);
+      span.style.width = span.style.height = size + 'px';
+      span.style.left = (e.clientX - rect.left - size / 2) + 'px';
+      span.style.top = (e.clientY - rect.top - size / 2) + 'px';
+      span.className = 'ripple';
+      btn.appendChild(span);
+      setTimeout(() => span.remove(), 650);
+    }
+    document.querySelectorAll('button, a.btn-try, a.btn-learn, #getStarted').forEach(b => b.addEventListener('click', rippleEffect));
+
+    // Intersection Observer: animate fade-in elements
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) entry.target.classList.add('show');
+      });
+    }, { threshold: 0.15 });
+    document.querySelectorAll('.fade-in').forEach(el => io.observe(el));
+
+    // Add keyboard focus styles for accessibility (simple enhancement)
+    document.addEventListener('keydown', (e) => { if (e.key === 'Tab') document.body.classList.add('user-is-tabbing'); });
+  </script>
+
+</body>
+
+</html>
