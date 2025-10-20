@@ -395,7 +395,7 @@
       pointer-events: none
     }
 
-     footer.site-footer {
+    footer.site-footer {
       margin-top: 48px;
       padding: 28px 1rem 48px;
       text-align: center;
@@ -417,8 +417,8 @@
       margin-top: 16px;
       padding: 12px;
       border-radius: 10px;
-      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.08));
-      border: 1px solid rgba(255,255,255,0.04);
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(0, 0, 0, 0.08));
+      border: 1px solid rgba(255, 255, 255, 0.04);
       backdrop-filter: blur(6px);
       color: #eef2ff;
     }
@@ -436,7 +436,7 @@
       gap: 12px;
       padding: 8px;
       border-radius: 8px;
-      background: rgba(255,255,255,0.01);
+      background: rgba(255, 255, 255, 0.01);
     }
 
     .resource-meta {
@@ -453,11 +453,11 @@
 
     .resource-sub {
       font-size: 12px;
-      color: rgba(230,238,243,0.72);
+      color: rgba(230, 238, 243, 0.72);
     }
 
     .resource-actions button {
-      background: linear-gradient(90deg,var(--neon),var(--violet));
+      background: linear-gradient(90deg, var(--neon), var(--violet));
       color: #05020a;
       border: none;
       padding: 6px 10px;
@@ -467,10 +467,428 @@
     }
 
     .resource-empty {
-      color: rgba(230,238,243,0.6);
+      color: rgba(230, 238, 243, 0.6);
       font-size: 0.95rem;
       padding: 10px;
       text-align: center;
+    }
+
+    /* ---------- TABLET (max-width: 980px) ---------- */
+    @media (max-width: 980px) {
+      .container {
+        grid-template-columns: 1fr !important;
+        padding: 12px !important;
+        margin: 100px auto 40px !important;
+      }
+
+      .hero-3d {
+        display: none !important;
+      }
+
+      .hero {
+        flex-direction: column !important;
+        gap: 12px !important;
+      }
+
+      .hero-card {
+        padding: 16px !important;
+      }
+
+      .spline-wrap {
+        display: none !important;
+      }
+    }
+
+    /* ---------- MOBILE (max-width: 768px) ---------- */
+    @media (max-width: 768px) {
+      header.site-header {
+        top: 6px;
+        left: 8px;
+        right: 8px;
+        height: 60px;
+        padding: 0 12px;
+        z-index: 30;
+      }
+
+      .glass:first-child {
+        padding: 0.5rem 0.75rem !important;
+      }
+
+      .brand {
+        font-size: 16px !important;
+      }
+
+      header.site-header .text-xs {
+        display: none !important;
+      }
+
+      nav {
+        padding: 0.35rem 0.5rem !important;
+        gap: 0.5rem !important;
+      }
+
+      nav a {
+        padding: 6px 8px !important;
+        font-size: 0.8rem !important;
+      }
+
+      .search-input {
+        display: none !important;
+      }
+
+      .container {
+        grid-template-columns: 1fr !important;
+        padding: 10px !important;
+        margin: 80px auto 30px !important;
+        gap: 12px !important;
+      }
+
+      .hero {
+        flex-direction: column !important;
+        gap: 10px !important;
+      }
+
+      .hero-card {
+        padding: 14px !important;
+      }
+
+      .hero-card h1 {
+        font-size: 1.5rem !important;
+      }
+
+      .hero-card .flex {
+        flex-direction: column !important;
+        gap: 10px !important;
+      }
+
+      .hero-card .flex>div:first-child {
+        width: 100% !important;
+      }
+
+      .hero-card p {
+        font-size: 0.8rem !important;
+      }
+
+      .neon-btn {
+        padding: 0.5rem 0.75rem !important;
+        font-size: 0.8rem !important;
+      }
+
+      .tabs {
+        gap: 6px !important;
+      }
+
+      .tab {
+        padding: 6px 10px !important;
+        font-size: 0.85rem !important;
+      }
+
+      .timetable-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 8px !important;
+      }
+
+      .slot {
+        padding: 8px !important;
+        border-radius: 8px !important;
+        font-size: 0.75rem !important;
+      }
+
+      .slot .meta {
+        font-size: 11px !important;
+      }
+
+      .sidebar {
+        width: 100% !important;
+      }
+
+      .card {
+        margin-bottom: 10px !important;
+        padding: 12px !important;
+      }
+
+      .card .text-xs {
+        font-size: 0.75rem !important;
+      }
+
+      .card .text-sm {
+        font-size: 0.85rem !important;
+      }
+
+      .countdown {
+        font-size: 16px !important;
+      }
+
+      .chart-bar {
+        height: 100px !important;
+      }
+
+      .bar {
+        width: 18px !important;
+      }
+
+      svg {
+        width: 60px !important;
+        height: 60px !important;
+      }
+
+      .resources-card {
+        margin-top: 12px !important;
+        padding: 10px !important;
+      }
+
+      .resources-card h4 {
+        font-size: 0.9rem !important;
+      }
+
+      .resource-row {
+        padding: 6px !important;
+        gap: 8px !important;
+      }
+
+      .resource-name {
+        font-size: 0.9rem !important;
+      }
+
+      .resource-sub {
+        font-size: 11px !important;
+      }
+
+      .resource-actions button {
+        padding: 5px 8px !important;
+        font-size: 11px !important;
+      }
+
+      .fab {
+        right: 16px;
+        bottom: 16px;
+        width: 50px;
+        height: 50px;
+        font-size: 24px;
+      }
+
+      .toast {
+        right: 12px;
+        bottom: 80px !important;
+        padding: 10px 12px;
+        font-size: 0.8rem;
+        max-width: 220px;
+      }
+
+      footer.site-footer {
+        margin-top: 24px;
+        padding: 16px 0.75rem 32px;
+        font-size: 0.7rem;
+      }
+
+      .footer-line {
+        max-width: 100%;
+      }
+    }
+
+    /* ---------- SMALL MOBILE (max-width: 480px) ---------- */
+    @media (max-width: 480px) {
+      header.site-header {
+        top: 4px;
+        left: 6px;
+        right: 6px;
+        height: 55px;
+        padding: 0 10px;
+      }
+
+      .glass:first-child {
+        padding: 0.4rem 0.5rem !important;
+        gap: 0.5rem !important;
+      }
+
+      .brand {
+        font-size: 14px !important;
+      }
+
+      .brand::after {
+        content: none !important;
+      }
+
+      header.site-header .text-xs {
+        display: none !important;
+      }
+
+      nav {
+        padding: 0.3rem 0.4rem !important;
+        gap: 0.3rem !important;
+      }
+
+      nav a {
+        padding: 5px 6px !important;
+        font-size: 0.75rem !important;
+      }
+
+      .container {
+        grid-template-columns: 1fr !important;
+        padding: 8px !important;
+        margin: 70px auto 20px !important;
+        gap: 10px !important;
+      }
+
+      .hero {
+        flex-direction: column !important;
+        gap: 8px !important;
+      }
+
+      .hero-card {
+        padding: 10px !important;
+      }
+
+      .hero-card h1 {
+        font-size: 1.2rem !important;
+      }
+
+      .hero-card .flex {
+        flex-direction: column !important;
+      }
+
+      .hero-card p {
+        font-size: 0.75rem !important;
+      }
+
+      .neon-btn {
+        padding: 0.4rem 0.6rem !important;
+        font-size: 0.75rem !important;
+      }
+
+      .tabs {
+        gap: 4px !important;
+      }
+
+      .tab {
+        padding: 5px 8px !important;
+        font-size: 0.8rem !important;
+      }
+
+      .timetable-grid {
+        grid-template-columns: 1fr !important;
+        gap: 6px !important;
+      }
+
+      .slot {
+        padding: 6px !important;
+        border-radius: 6px !important;
+        font-size: 0.7rem !important;
+        min-height: 70px;
+      }
+
+      .slot .meta {
+        font-size: 10px !important;
+      }
+
+      .card {
+        margin-bottom: 8px !important;
+        padding: 10px !important;
+      }
+
+      .card .text-xs {
+        font-size: 0.7rem !important;
+      }
+
+      .card .text-sm {
+        font-size: 0.8rem !important;
+      }
+
+      .card .text-lg {
+        font-size: 1rem !important;
+      }
+
+      .countdown {
+        font-size: 14px !important;
+      }
+
+      .chart-bar {
+        height: 80px !important;
+        gap: 6px !important;
+      }
+
+      .bar {
+        width: 14px !important;
+      }
+
+      svg {
+        width: 50px !important;
+        height: 50px !important;
+      }
+
+      .resources-card {
+        margin-top: 10px !important;
+        padding: 8px !important;
+      }
+
+      .resources-card h4 {
+        font-size: 0.85rem !important;
+        margin-bottom: 6px !important;
+      }
+
+      .resource-row {
+        padding: 5px !important;
+        gap: 6px !important;
+        flex-direction: column !important;
+      }
+
+      .resource-meta {
+        width: 100% !important;
+      }
+
+      .resource-actions {
+        width: 100% !important;
+      }
+
+      .resource-actions button {
+        width: 100%;
+        padding: 6px !important;
+        font-size: 0.75rem !important;
+      }
+
+      .resource-name {
+        font-size: 0.85rem !important;
+      }
+
+      .resource-sub {
+        font-size: 10px !important;
+      }
+
+      .fab {
+        right: 12px;
+        bottom: 12px;
+        width: 45px;
+        height: 45px;
+        font-size: 20px;
+      }
+
+      .toast {
+        right: 10px;
+        bottom: 70px !important;
+        padding: 8px 10px;
+        font-size: 0.75rem;
+        max-width: 200px;
+      }
+
+      .pane {
+        min-height: 280px !important;
+      }
+
+      input,
+      select,
+      textarea {
+        font-size: 1rem !important;
+      }
+
+      footer.site-footer {
+        margin-top: 16px;
+        padding: 12px 0.5rem 24px;
+        font-size: 0.65rem;
+      }
+
+      .footer-line {
+        height: 1px;
+      }
     }
   </style>
 </head>
@@ -485,7 +903,7 @@
       <div class="text-xs text-gray-300">Smart Classroom & Timetable Scheduler</div>
     </div>
     <nav class="glass flex items-center gap-2 px-3 py-2">
-       <a id="logoutBtn" href="index.html" class="btn-logout" title="Logout">Logout</a>
+      <a id="logoutBtn" href="index.html" class="btn-logout" title="Logout">Logout</a>
     </nav>
   </header>
 
@@ -795,16 +1213,16 @@
     }
     // static sample data
     applyAttendanceData({ present: 46, absent: 4 }); // shows 92%
- 
+
     // Toast notifications
     function showToast(msg, t = 3000) { const el = document.createElement('div'); el.className = 'toast glass'; el.innerHTML = `<div style="font-weight:700;margin-bottom:6px">⚡ Schedule update</div><div style="font-size:13px">${msg}</div>`; document.body.appendChild(el); setTimeout(() => el.style.opacity = 0, t - 400); setTimeout(() => el.remove(), t); }
     // Simulated incoming notification
     setTimeout(() => showToast('Your 10 AM Data Structures class moved to Lab L2.'), 1400);
- 
+
     // prepare reports chart (static data)
     prepareChartCanvas('reportsChart');
-    const reportsChart = makeBarChart(document.querySelector('#reportsChart canvas'), ['Mon','Tue','Wed','Thu','Fri'], [85, 92, 88, 90, 93], ['#FF00FF']);
-    
+    const reportsChart = makeBarChart(document.querySelector('#reportsChart canvas'), ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], [85, 92, 88, 90, 93], ['#FF00FF']);
+
     // Export buttons (replace html2canvas screenshot approach with data-driven PDF table)
     document.getElementById('exportPdf').addEventListener('click', async (evt) => {
       const btn = evt.currentTarget;
@@ -956,7 +1374,7 @@
     function renderResources(list = []) {
       const container = document.getElementById('resourcesList');
       container.innerHTML = '';
-      if(!list || list.length === 0) {
+      if (!list || list.length === 0) {
         container.innerHTML = '<div class="resource-empty">No resources uploaded yet.</div>';
         return;
       }
@@ -983,7 +1401,7 @@
         btn.addEventListener('click', async (e) => {
           const id = btn.getAttribute('data-id');
           const res = sampleResources.find(r => r.id === id);
-          if(!res) return alert('Resource not found');
+          if (!res) return alert('Resource not found');
           // Demo: generate a small text/pdf blob for download (replace with real file URL)
           const demoContent = `This is a demo file for ${res.name}\nProvided by Timelytics.`;
           const blob = new Blob([demoContent], { type: res.contentType || 'text/plain' });
@@ -994,16 +1412,16 @@
           document.body.appendChild(a);
           a.click();
           a.remove();
-          setTimeout(()=> URL.revokeObjectURL(url), 2000);
+          setTimeout(() => URL.revokeObjectURL(url), 2000);
         });
       });
     }
 
     // Small helper to avoid HTML injection
-    function escapeHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+    function escapeHtml(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
 
     // Simulate async fetch and render
-    setTimeout(()=> renderResources(sampleResources), 250);
+    setTimeout(() => renderResources(sampleResources), 250);
   </script>
 </body>
 

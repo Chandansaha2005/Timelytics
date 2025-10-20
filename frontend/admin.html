@@ -437,6 +437,268 @@
       background: #fff;
       border-radius: 8px;
     }
+    /* ---------- MOBILE RESPONSIVE (max-width: 768px) ---------- */
+@media (max-width: 768px) {
+  
+  /* Navbar adjustments */
+  .sausage {
+    width: calc(100% - 1rem);
+    padding: 0.3rem 0.5rem;
+    gap: 0.5rem;
+  }
+
+  .brand {
+    font-size: 0.9rem;
+  }
+
+  .navlinks {
+    display: none !important;
+  }
+
+  /* Hero section */
+  .hero {
+    padding-top: 80px;
+    padding-bottom: 28px;
+  }
+
+  .hero h1 {
+    font-size: clamp(1.5rem, 3vw, 2.2rem);
+  }
+
+  .hero p {
+    font-size: 0.95rem;
+  }
+
+  /* Stats cards */
+  .stats-row {
+    flex-direction: column;
+    gap: 10px;
+    padding: 0 0.75rem;
+  }
+
+  .stat {
+    min-width: unset;
+    max-width: 100%;
+    flex: none;
+  }
+
+  /* Main cards */
+  .cards {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 0 0.75rem;
+  }
+
+  .card {
+    padding: 16px;
+    min-height: auto;
+  }
+
+  .card .icon {
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
+  }
+
+  .card h3 {
+    font-size: 1rem;
+  }
+
+  .card p {
+    font-size: 0.9rem;
+  }
+
+  /* CTA buttons */
+  .card-cta-center {
+    margin-top: 0.75rem;
+  }
+
+  .card-cta-center .cta-btn {
+    padding: 0.7rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  /* Recent area */
+  .recent-area {
+    margin: 12px auto 36px;
+    padding: 0.75rem;
+  }
+
+  .recent-card {
+    padding: 12px;
+    overflow-x: auto;
+  }
+
+  .recent-card table {
+    font-size: 0.8rem;
+  }
+
+  .recent-card thead th,
+  .recent-card tbody td {
+    padding: 8px 6px;
+  }
+
+  /* Footer */
+  footer.site-footer {
+    padding: 20px 0.75rem 36px;
+  }
+
+  .footer-line {
+    max-width: 100%;
+  }
+}
+
+/* ---------- SMALL MOBILE (max-width: 480px) ---------- */
+@media (max-width: 480px) {
+  
+  /* Navbar even tighter */
+  header.topbar {
+    top: 6px;
+    padding: 0 0.5rem;
+  }
+
+  .sausage {
+    width: calc(100% - 0.5rem);
+    padding: 0.25rem 0.4rem;
+    gap: 0.4rem;
+  }
+
+  .brand {
+    font-size: 0.8rem;
+  }
+
+  .btn-logout {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
+  }
+
+  /* Hero section */
+  .hero {
+    padding-top: 70px;
+    padding-bottom: 20px;
+  }
+
+  .hero h1 {
+    font-size: clamp(1.3rem, 2.5vw, 1.8rem);
+  }
+
+  .hero p {
+    font-size: 0.85rem;
+  }
+
+  .glow-divider {
+    width: 120px !important;
+  }
+
+  /* Stats cards - stack vertically */
+  .stats-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .stat {
+    padding: 10px;
+  }
+
+  .stat .text-sm {
+    font-size: 0.75rem;
+  }
+
+  .stat .count {
+    font-size: 1rem;
+  }
+
+  /* Cards */
+  .cards {
+    gap: 10px;
+    padding: 0 0.5rem;
+    margin: 24px auto 40px;
+  }
+
+  .card {
+    padding: 12px;
+    flex-direction: column;
+  }
+
+  .card .icon {
+    width: 40px;
+    height: 40px;
+    font-size: 1.5rem;
+  }
+
+  .card h3 {
+    font-size: 0.95rem;
+  }
+
+  .card p {
+    font-size: 0.8rem;
+  }
+
+  /* Modal/form adjustments */
+  .card.glass {
+    padding: 12px;
+  }
+
+  .card.glass h3 {
+    font-size: 1rem;
+  }
+
+  .card.glass p {
+    font-size: 0.8rem;
+  }
+
+  /* Form inputs */
+  input[type="time"],
+  input[type="date"],
+  input[placeholder],
+  select {
+    font-size: 1rem !important; /* prevents zoom on iOS */
+    padding: 0.6rem !important;
+  }
+
+  /* Table - horizontal scroll on very small screens */
+  .recent-card table {
+    font-size: 0.7rem;
+  }
+
+  .recent-card thead th,
+  .recent-card tbody td {
+    padding: 6px 4px;
+  }
+
+  /* Footer */
+  footer.site-footer {
+    padding: 16px 0.5rem 28px;
+  }
+
+  .footer-line {
+    height: 1px;
+  }
+
+  .footer-text {
+    font-size: 0.8rem;
+  }
+}
+
+/* ---------- TABLET (768px to 1024px) ---------- */
+@media (min-width: 769px) and (max-width: 1024px) {
+  
+  .sausage {
+    padding: 0.4rem 0.7rem;
+  }
+
+  .cards {
+    grid-template-columns: 1fr;
+  }
+
+  .stats-row {
+    justify-content: space-between;
+  }
+
+  .stat {
+    flex: 1 1 calc(50% - 6px);
+  }
+}
   </style>
 </head>
 
