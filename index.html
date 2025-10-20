@@ -4,96 +4,281 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Timelytics | Loading...</title>
-  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;800&display=swap" rel="stylesheet">
   <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
     body {
-      background: #0f172a;
+      background: linear-gradient(135deg, #0f172a 0%, #1a0f2e 50%, #0f172a 100%);
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
       height: 100vh;
-      margin: 0;
       overflow: hidden;
+      font-family: 'Unbounded', sans-serif;
+      position: relative;
+    }
+
+    /* Animated background elements */
+    .bg-glow {
+      position: fixed;
+      width: 500px;
+      height: 500px;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .glow-1 {
+      top: -200px;
+      right: -200px;
+      background: radial-gradient(circle, rgba(26, 144, 255, 0.2), transparent 70%);
+      animation: float 8s ease-in-out infinite;
+    }
+
+    .glow-2 {
+      bottom: -200px;
+      left: -200px;
+      background: radial-gradient(circle, rgba(138, 43, 226, 0.15), transparent 70%);
+      animation: float 10s ease-in-out infinite reverse;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translate(0, 0); }
+      50% { transform: translate(30px, -30px); }
+    }
+
+    .container {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 40px;
+    }
+
+    /* Logo container with enhanced styling */
+    .logo-wrapper {
+      position: relative;
+      width: 180px;
+      height: 180px;
+      animation: fadeInScale 1s ease-out forwards;
     }
 
     .logo {
-      width: 160px;
-      height: 160px;
+      width: 100%;
+      height: 100%;
       border-radius: 50%;
-      animation: fadeInScale 1.2s ease-in-out forwards;
-      background: linear-gradient(90deg, #1e90ff 20%, #6a00f4 100%);
+      background: linear-gradient(135deg, #1e90ff 0%, #6a00f4 50%, #ff00ff 100%);
       display: flex;
       justify-content: center;
       align-items: center;
-      box-shadow: 0 0 30px rgba(106, 0, 244, 0.4);
+      box-shadow: 
+        0 0 40px rgba(106, 0, 244, 0.6),
+        0 0 80px rgba(30, 144, 255, 0.3),
+        inset 0 0 40px rgba(255, 255, 255, 0.1);
+      animation: pulse-glow 3s ease-in-out infinite;
+      position: relative;
+    }
+
+    .logo::before {
+      content: '';
+      position: absolute;
+      inset: -4px;
+      border-radius: 50%;
+      background: linear-gradient(90deg, #1e90ff, #6a00f4, #ff00ff, #1e90ff);
+      background-size: 300% 300%;
+      animation: border-rotate 4s linear infinite;
+      z-index: -1;
     }
 
     .logo img {
-      width: 100px;
-      height: 100px;
+      width: 120px;
+      height: 120px;
       border-radius: 50%;
-    }
-
-    h1 {
-      font-family: 'Unbounded', sans-serif;
-      font-size: 42px;
-      margin-top: 30px;
+      object-fit: cover;
       position: relative;
-      color: #000;
-      background: linear-gradient(90deg, #1e90ff 20%, #6a00f4 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      overflow: hidden;
-      letter-spacing: 2px;
+      z-index: 1;
+      filter: drop-shadow(0 0 20px rgba(106, 0, 244, 0.4));
     }
 
-    /* Light sweep effect */
-    h1::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -75%;
-      width: 50%;
-      height: 100%;
-      background: linear-gradient(120deg, transparent, rgba(255,255,255,0.8), transparent);
-      animation: sweep 2s ease-in-out infinite;
+    @keyframes pulse-glow {
+      0%, 100% { box-shadow: 
+        0 0 40px rgba(106, 0, 244, 0.6),
+        0 0 80px rgba(30, 144, 255, 0.3),
+        inset 0 0 40px rgba(255, 255, 255, 0.1);
+      }
+      50% { box-shadow: 
+        0 0 60px rgba(106, 0, 244, 0.8),
+        0 0 120px rgba(30, 144, 255, 0.5),
+        inset 0 0 60px rgba(255, 255, 255, 0.2);
+      }
     }
 
-    @keyframes sweep {
-      0% { left: -75%; }
-      100% { left: 125%; }
+    @keyframes border-rotate {
+      0% { background-position: 0% 50%; }
+      100% { background-position: 300% 50%; }
     }
 
     @keyframes fadeInScale {
-      from { opacity: 0; transform: scale(0.8); }
-      to { opacity: 1; transform: scale(1); }
+      from { 
+        opacity: 0; 
+        transform: scale(0.7) rotateZ(-10deg);
+      }
+      to { 
+        opacity: 1; 
+        transform: scale(1) rotateZ(0deg);
+      }
     }
 
+    /* Title with gradient and animation */
+    h1 {
+      font-size: clamp(36px, 8vw, 56px);
+      font-weight: 800;
+      position: relative;
+      letter-spacing: 3px;
+      background: linear-gradient(90deg, #1e90ff 0%, #6a00f4 50%, #ff00ff 100%);
+      background-size: 200% 100%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: fadeInText 1.2s ease-out 0.3s forwards, gradient-shift 4s ease infinite;
+      opacity: 0;
+    }
+
+    @keyframes fadeInText {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes gradient-shift {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+
+    /* Subtitle text */
+    .subtitle {
+      font-size: clamp(12px, 2vw, 16px);
+      color: rgba(230, 238, 243, 0.7);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      animation: fadeInText 1.2s ease-out 0.6s forwards;
+      opacity: 0;
+      font-weight: 500;
+    }
+
+    /* Loading indicator */
+    .loading-dots {
+      display: flex;
+      gap: 8px;
+      animation: fadeInText 1.2s ease-out 0.9s forwards;
+      opacity: 0;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #1e90ff, #6a00f4);
+      animation: bounce 1.4s ease-in-out infinite;
+    }
+
+    .dot:nth-child(2) { animation-delay: 0.2s; }
+    .dot:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); opacity: 0.6; }
+      50% { transform: translateY(-12px); opacity: 1; }
+    }
+
+    /* Fade out animation */
     .fade-out {
-      animation: fadeOut 0.8s ease-in-out forwards;
+      animation: fadeOutAll 0.8s ease-in-out forwards;
     }
 
-    @keyframes fadeOut {
-      from { opacity: 1; transform: scale(1); }
-      to { opacity: 0; transform: scale(0.95); }
+    @keyframes fadeOutAll {
+      from { 
+        opacity: 1; 
+        transform: scale(1);
+      }
+      to { 
+        opacity: 0; 
+        transform: scale(0.95);
+      }
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 480px) {
+      .container {
+        gap: 30px;
+      }
+
+      .logo-wrapper {
+        width: 140px;
+        height: 140px;
+      }
+
+      .logo img {
+        width: 90px;
+        height: 90px;
+      }
+
+      h1 {
+        font-size: 32px;
+        letter-spacing: 2px;
+      }
+
+      .subtitle {
+        font-size: 12px;
+        letter-spacing: 1px;
+      }
     }
   </style>
+</head>
+<body>
+  <!-- Background glows -->
+  <div class="bg-glow glow-1"></div>
+  <div class="bg-glow glow-2"></div>
+
+  <!-- Main content -->
+  <div class="container">
+    <div class="logo-wrapper">
+      <div class="logo">
+        <img src="./frontend/assets/logo.jpg" alt="Timelytics Logo">
+      </div>
+    </div>
+    
+    <div style="text-align: center;">
+      <h1>Timelytics</h1>
+      <p class="subtitle">Smart Classroom Scheduler</p>
+    </div>
+
+    <div class="loading-dots">
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+    </div>
+  </div>
 
   <script>
-    // Fade-out + redirect
+    // Fade-out and redirect
     setTimeout(() => {
       document.body.classList.add('fade-out');
       setTimeout(() => {
-        window.location.href = "./frontend/index.html"; // redirect target
-      }, 700);
-    }, 2300); // visible for 2.3 seconds before fade
+        window.location.href = "./frontend/index.html";
+      }, 800);
+    }, 2800);
   </script>
-</head>
-<body>
-  <div class="logo">
-    <img src="./frontend/assets/logo.jpg" alt="Timelytics Logo">
-  </div>
-  <h1>Timelytics</h1>
 </body>
 </html>
