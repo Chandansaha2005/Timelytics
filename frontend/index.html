@@ -11,7 +11,11 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     /* Responsive and zoom-friendly improvements (keeps same colors/background) */
-    *, *::before, *::after { box-sizing: border-box; }
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
 
     :root {
       /* dark defaults for landing page */
@@ -26,8 +30,21 @@
     }
 
     /* Scale base font so text and UI scale smoothly when browser zooms */
-    html { font-size: clamp(14px, 1.4vw, 18px); height: 100%; }
-    body { height: 100%; margin: 0; font-family: 'Unbounded', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; color: var(--text); background: var(--bg-gradient); -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; overflow-x: hidden; }
+    html {
+      font-size: clamp(14px, 1.4vw, 18px);
+      height: 100%;
+    }
+
+    body {
+      height: 100%;
+      margin: 0;
+      font-family: 'Unbounded', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+      color: var(--text);
+      background: var(--bg-gradient);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      overflow-x: hidden;
+    }
 
     /* Background / Spline viewer stays visually identical but is bounded to prevent horizontal scroll */
     .background {
@@ -44,8 +61,17 @@
     }
 
     /* Slight scaling on very wide screens to keep balance */
-    @media (min-width: 1400px) { .background { transform: translateX(-50%) scale(1.08); } }
-    @media (min-width: 2000px) { .background { transform: translateX(-50%) scale(1.2); } }
+    @media (min-width: 1400px) {
+      .background {
+        transform: translateX(-50%) scale(1.08);
+      }
+    }
+
+    @media (min-width: 2000px) {
+      .background {
+        transform: translateX(-50%) scale(1.2);
+      }
+    }
 
     /* Keep spline viewer contained and responsive */
     spline-viewer.background,
@@ -64,9 +90,14 @@
       border: 1px solid rgba(255, 255, 255, 0.06);
     }
 
-    .blur-top { backdrop-filter: blur(8px); }
+    .blur-top {
+      backdrop-filter: blur(8px);
+    }
 
-    .nav-scrolled { background: rgba(255, 255, 255, 0.95); box-shadow: 0 6px 18px rgba(16, 24, 40, 0.08); }
+    .nav-scrolled {
+      background: rgba(255, 255, 255, 0.95);
+      box-shadow: 0 6px 18px rgba(16, 24, 40, 0.08);
+    }
 
     /* Ripple effect */
     .ripple {
@@ -77,48 +108,102 @@
       animation: ripple 600ms linear;
       pointer-events: none;
     }
-    @keyframes ripple { to { transform: scale(4); opacity: 0; } }
+
+    @keyframes ripple {
+      to {
+        transform: scale(4);
+        opacity: 0;
+      }
+    }
 
     .fade-in {
       transform: translateY(20px);
       opacity: 0;
       transition: all 600ms cubic-bezier(.2, .9, .2, 1);
     }
-    .fade-in.show { transform: translateY(0); opacity: 1; }
+
+    .fade-in.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
 
     /* Layout padding tuned for small screens to avoid clipping at zoom */
-    header#topNav { padding-left: 1rem; padding-right: 1rem; }
-    main { padding-left: 1rem; padding-right: 1rem; }
+    header#topNav {
+      padding-left: 1rem;
+      padding-right: 1rem;
+    }
+
+    main {
+      padding-left: 1rem;
+      padding-right: 1rem;
+    }
 
     /* Feature cards flow better at smaller widths */
-    .feature-card { min-height: 140px; display: flex; flex-direction: column; justify-content: flex-start; }
+    .feature-card {
+      min-height: 140px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+    }
 
     /* Ensure images and block elements cannot overflow */
-    img, .mx-auto, svg { max-width: 100%; height: auto; display: block; }
+    img,
+    .mx-auto,
+    svg {
+      max-width: 100%;
+      height: auto;
+      display: block;
+    }
 
     /* Buttons: avoid large left/right padding on small devices so layout doesn't wrap */
-    .btn-try, .btn-learn, #getStarted {
+    .btn-try,
+    .btn-learn,
+    #getStarted {
       white-space: nowrap;
     }
 
     @media (max-width: 1024px) {
+
       /* reduce some spacing on medium screens */
-      header#topNav { padding-top: 0.5rem; padding-bottom: 0.5rem; }
-      .background { width: 140vw; }
+      header#topNav {
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
+      }
+
+      .background {
+        width: 140vw;
+      }
     }
 
     @media (max-width: 640px) {
+
       /* mobile adjustments */
-      .nav-scrolled { padding: 0.5rem 0.75rem; }
-      .btn-try, .btn-learn, #getStarted { padding-left: 0.75rem; padding-right: 0.75rem; font-size: 0.95rem; }
-      .feature-card { min-height: 120px; }
+      .nav-scrolled {
+        padding: 0.5rem 0.75rem;
+      }
+
+      .btn-try,
+      .btn-learn,
+      #getStarted {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+        font-size: 0.95rem;
+      }
+
+      .feature-card {
+        min-height: 120px;
+      }
+
       /* ensure hero content stacks cleanly */
-      #hero { grid-template-columns: 1fr !important; }
+      #hero {
+        grid-template-columns: 1fr !important;
+      }
     }
 
     /* Accessibility: visible focus for keyboard users */
-    .user-is-tabbing a:focus, .user-is-tabbing button:focus {
-      outline: 3px solid rgba(57,11,224,0.18);
+    .user-is-tabbing a:focus,
+    .user-is-tabbing button:focus {
+      outline: 3px solid rgba(57, 11, 224, 0.18);
       outline-offset: 2px;
     }
 
@@ -132,15 +217,18 @@
       z-index: 50;
       display: flex;
       justify-content: center;
-      background: transparent; /* fully transparent outer bar */
+      background: transparent;
+      /* fully transparent outer bar */
       padding: 0;
-      pointer-events: none; /* allow clicks only on inner nav */
+      pointer-events: none;
+      /* allow clicks only on inner nav */
       transition: top .2s ease, background .2s ease, box-shadow .2s ease;
     }
 
     /* the actual pill-shaped (sausage) nav */
     header#topNav nav {
-      pointer-events: auto; /* re-enable interactions inside the pill */
+      pointer-events: auto;
+      /* re-enable interactions inside the pill */
       width: calc(100% - 2rem);
       max-width: 1120px;
       display: flex;
@@ -148,11 +236,14 @@
       justify-content: space-between;
       gap: 0.75rem;
       padding: 0.45rem 0.9rem;
-      background: rgba(7,9,14,0.36); /* subtle glass so background remains visible */
-      border-radius: 9999px; /* sausage / pill */
-      box-shadow: 0 8px 30px rgba(2,6,23,0.32);
+      background: rgba(7, 9, 14, 0.36);
+      /* subtle glass so background remains visible */
+      border-radius: 9999px;
+      /* sausage / pill */
+      box-shadow: 0 8px 30px rgba(2, 6, 23, 0.32);
       backdrop-filter: blur(6px);
-      position: relative; /* needed so centered UL can be absolute */
+      position: relative;
+      /* needed so centered UL can be absolute */
     }
 
     /* Brand (Timelytics) - blue → violet → magenta gradient */
@@ -170,13 +261,15 @@
 
     /* Center the main navigation links (home, features, about, contact) on md+ */
     @media (min-width: 768px) {
+
       header#topNav nav ul.hidden.md\\:flex,
       header#topNav nav ul {
         position: absolute;
         left: 50%;
         top: 50%;
         transform: translate(-50%, -50%);
-        display: flex; /* ensures centered layout on md+ */
+        display: flex;
+        /* ensures centered layout on md+ */
         gap: 1.25rem;
         margin: 0;
         padding: 0;
@@ -192,20 +285,27 @@
         font-weight: 600;
         transition: opacity .15s ease;
       }
-      header#topNav nav ul li a:hover { opacity: 0.9; text-decoration: underline; }
+
+      header#topNav nav ul li a:hover {
+        opacity: 0.9;
+        text-decoration: underline;
+      }
     }
 
     /* Ensure other nav anchors (login..) are white too, but keep logo gradient */
     header#topNav nav a:not([aria-label]) {
       color: #ffffff;
     }
-    header#topNav nav a:not([aria-label]):hover { opacity: 0.92; }
+
+    header#topNav nav a:not([aria-label]):hover {
+      opacity: 0.92;
+    }
 
     /* Keep the pill slightly more prominent when page is scrolled,
        but remain translucent (not solid white) */
     header#topNav.nav-scrolled nav {
-      background: rgba(255,255,255,0.06);
-      box-shadow: 0 10px 36px rgba(2,6,23,0.28);
+      background: rgba(255, 255, 255, 0.06);
+      box-shadow: 0 10px 36px rgba(2, 6, 23, 0.28);
       backdrop-filter: blur(8px);
     }
 
@@ -217,21 +317,46 @@
 
     /* small-screen tweaks so the pill doesn't hug edges too tightly */
     @media (max-width: 640px) {
-      header#topNav { top: 8px; }
-      header#topNav nav { width: calc(100% - 1.25rem); padding: 0.35rem 0.6rem; }
-      header#topNav nav .hidden.md\\:flex { display: none; } /* preserve existing hidden behaviour */
-      header#topNav nav a[aria-label="Timelytics logo"] { font-size: 1rem; }
-      header#topNav nav a:not([aria-label]) { color: #ffffff; }
+      header#topNav {
+        top: 8px;
+      }
+
+      header#topNav nav {
+        width: calc(100% - 1.25rem);
+        padding: 0.35rem 0.6rem;
+      }
+
+      header#topNav nav .hidden.md\\:flex {
+        display: none;
+      }
+
+      /* preserve existing hidden behaviour */
+      header#topNav nav a[aria-label="Timelytics logo"] {
+        font-size: 1rem;
+      }
+
+      header#topNav nav a:not([aria-label]) {
+        color: #ffffff;
+      }
     }
 
     /* Footer: dark theme matching page */
     footer#contact {
-      background: linear-gradient(180deg, rgba(7,9,20,0.88) 0%, rgba(3,1,12,0.96) 100%);
-      color: rgba(230,238,243,0.92);
-      border-top: 1px solid rgba(255,255,255,0.04);
+      background: linear-gradient(180deg, rgba(7, 9, 20, 0.88) 0%, rgba(3, 1, 12, 0.96) 100%);
+      color: rgba(230, 238, 243, 0.92);
+      border-top: 1px solid rgba(255, 255, 255, 0.04);
     }
-    footer#contact a { color: rgba(230,238,243,0.9); transition: color .15s ease, opacity .15s ease; }
-    footer#contact a:hover { color: #ffffff; opacity: 0.95; text-decoration: underline; }
+
+    footer#contact a {
+      color: rgba(230, 238, 243, 0.9);
+      transition: color .15s ease, opacity .15s ease;
+    }
+
+    footer#contact a:hover {
+      color: #ffffff;
+      opacity: 0.95;
+      text-decoration: underline;
+    }
 
     .footer-brand {
       background: linear-gradient(90deg, #1e90ff 0%, #6a00f4 50%, #ff2d95 100%);
@@ -245,21 +370,36 @@
     }
 
     .footer-sub {
-      color: rgba(230,238,243,0.72);
+      color: rgba(230, 238, 243, 0.72);
       font-size: 0.95rem;
     }
 
-    footer#contact .max-w-7xl { padding-left: 1rem; padding-right: 1rem; }
+    footer#contact .max-w-7xl {
+      padding-left: 1rem;
+      padding-right: 1rem;
+    }
+
     footer#contact .socials a {
-      display:inline-flex; align-items:center; justify-content:center;
-      width:34px; height:34px; border-radius:8px;
-      background: rgba(255,255,255,0.03); margin-right:0.5rem;
-      color: rgba(230,238,243,0.9); text-decoration:none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.03);
+      margin-right: 0.5rem;
+      color: rgba(230, 238, 243, 0.9);
+      text-decoration: none;
     }
 
     @media (max-width: 640px) {
-      footer#contact .max-w-7xl { grid-template-columns: 1fr; }
-      footer#contact .socials { margin-top: 0.5rem; }
+      footer#contact .max-w-7xl {
+        grid-template-columns: 1fr;
+      }
+
+      footer#contact .socials {
+        margin-top: 0.5rem;
+      }
     }
   </style>
   <script type="module" src="https://unpkg.com/@splinetool/viewer@1.10.81/build/spline-viewer.js"></script>
@@ -282,7 +422,7 @@
       </div>
 
       <div class="flex items-center gap-3">
-        <a href="/frontend/login.html"
+        <a href="/Timelytics/frontend/login.html"
           class="hidden sm:inline-block px-4 py-2 rounded-2xl text-sm font-medium text-gray-700 hover:bg-gray-100 transition">Login</a>
         <button id="getStarted"
           class="relative inline-flex items-center gap-2 px-4 py-2 rounded-2xl text-sm font-semibold text-white"
@@ -386,7 +526,8 @@
         <!-- Left: Brand + social -->
         <div>
           <a href="#" class="footer-brand" aria-label="Timelytics logo">Timelytics</a>
-          <p class="footer-sub mt-2">Timelytics is an intelligent timetable and classroom management platform focused on explainability and ease-of-use.</p>
+          <p class="footer-sub mt-2">Timelytics is an intelligent timetable and classroom management platform focused on
+            explainability and ease-of-use.</p>
 
           <p class="mt-6 text-sm footer-sub">© 2025 Timelytics — Built with ❤️ by TANTRIKS.</p>
         </div>
@@ -448,7 +589,7 @@
     document.querySelectorAll('button, a.btn-try, a.btn-learn, #getStarted').forEach(b => b.addEventListener('click', rippleEffect));
 
     // Make "Get Started" redirect to signup page (adjust path if your signup is elsewhere)
-    (function makeGetStartedRedirect(){
+    (function makeGetStartedRedirect() {
       const btn = document.getElementById('getStarted');
       if (!btn) return;
       btn.addEventListener('click', () => {
