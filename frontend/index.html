@@ -316,11 +316,17 @@
     }
 
     @media (max-width: 768px) {
-      .background {
-        display: none;
+  .background {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    width: 0 !important;
+  }
 
-      }
-    }
+  spline-viewer {
+    display: none !important;
+  }
+}
 
     /* small-screen tweaks so the pill doesn't hug edges too tightly */
     @media (max-width: 640px) {
@@ -429,9 +435,10 @@
       </div>
 
       <div class="flex items-center gap-3">
-        <a href="javascript:void(0);" id="loginBtn"
+        <button id="loginBtn"
           class="hidden sm:inline-block px-4 py-2 rounded-2xl text-sm font-medium text-white hover:opacity-92 transition"
-          style="background:var(--primary);">Login</a>
+          style="background:var(--primary);">Login</button>
+
         <button id="getStarted"
           class="relative inline-flex items-center gap-2 px-4 py-2 rounded-2xl text-sm font-semibold text-white"
           style="background:var(--primary);">Get Started</button>
@@ -611,7 +618,7 @@
     if (loginBtn) {
       loginBtn.addEventListener('click', () => {
         setTimeout(() => {
-          window.location.href = '/frontend/login.html';
+          window.location.href = '/Timelytics/frontend/login.html';
         }, 140);
       });
     }
