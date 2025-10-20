@@ -7,7 +7,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
   <style>
     body {
-      background: #f8fafc;
+      background: #0f172a;
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -18,18 +18,32 @@
     }
 
     .logo {
-      width: 150px;
-      height: 150px;
+      width: 160px;
+      height: 160px;
       border-radius: 50%;
       animation: fadeInScale 1.2s ease-in-out forwards;
+      background: linear-gradient(90deg, #1e90ff 20%, #6a00f4 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 0 30px rgba(106, 0, 244, 0.4);
+    }
+
+    .logo img {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
     }
 
     h1 {
       font-family: 'Unbounded', sans-serif;
-      font-size: 40px;
-      margin-top: 25px;
+      font-size: 42px;
+      margin-top: 30px;
       position: relative;
       color: #000;
+      background: linear-gradient(90deg, #1e90ff 20%, #6a00f4 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
       overflow: hidden;
       letter-spacing: 2px;
     }
@@ -42,7 +56,7 @@
       left: -75%;
       width: 50%;
       height: 100%;
-      background: linear-gradient(120deg, transparent, rgba(255,255,255,0.9), transparent);
+      background: linear-gradient(120deg, transparent, rgba(255,255,255,0.8), transparent);
       animation: sweep 2s ease-in-out infinite;
     }
 
@@ -71,13 +85,15 @@
     setTimeout(() => {
       document.body.classList.add('fade-out');
       setTimeout(() => {
-        window.location.href = "./frontend/index.html"; // redirect target
+        window.location.href = "home.html"; // redirect target
       }, 700);
-    }, 2200); // visible for 2.2 seconds before fade
+    }, 2300); // visible for 2.3 seconds before fade
   </script>
 </head>
 <body>
-  <img src="logo.png" alt="Timelytics Logo" class="logo">
+  <div class="logo">
+    <img src="logo.png" alt="Timelytics Logo">
+  </div>
   <h1>Timelytics</h1>
 </body>
 </html>
