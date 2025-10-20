@@ -49,9 +49,9 @@
     /* Background / Spline viewer stays visually identical but is bounded to prevent horizontal scroll */
     .background {
       position: absolute;
-      top: 0;
       left: 50%;
-      transform: translateX(-50%) scale(1);
+      bottom: 10%;
+      transform: translateX(-50%) scale(1.2);
       width: 120vw;
       max-width: 2200px;
       height: 100%;
@@ -315,6 +315,12 @@
       gap: 0.6rem;
     }
 
+    @media (max-width: 768px) {
+      .background {
+        display: none;
+      }
+    }
+
     /* small-screen tweaks so the pill doesn't hug edges too tightly */
     @media (max-width: 640px) {
       header#topNav {
@@ -422,8 +428,9 @@
       </div>
 
       <div class="flex items-center gap-3">
-        <a href="/Timelytics/frontend/login.html"
-          class="hidden sm:inline-block px-4 py-2 rounded-2xl text-sm font-medium text-gray-700 hover:bg-gray-100 transition">Login</a>
+        <a href="javascript:void(0);" id="loginBtn"
+          class="hidden sm:inline-block px-4 py-2 rounded-2xl text-sm font-medium text-white hover:opacity-92 transition"
+          style="background:var(--primary);">Login</a>
         <button id="getStarted"
           class="relative inline-flex items-center gap-2 px-4 py-2 rounded-2xl text-sm font-semibold text-white"
           style="background:var(--primary);">Get Started</button>
@@ -599,7 +606,14 @@
         }, 140);
       });
     })();
-
+    const loginBtn = document.getElementById('loginBtn');
+    if (loginBtn) {
+      loginBtn.addEventListener('click', () => {
+        setTimeout(() => {
+          window.location.href = '/frontend/login.html';
+        }, 140);
+      });
+    }
     // Intersection Observer: animate fade-in elements
     const io = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
